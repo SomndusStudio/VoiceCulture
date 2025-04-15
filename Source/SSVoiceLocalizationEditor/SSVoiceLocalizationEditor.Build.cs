@@ -9,7 +9,7 @@ public class SSVoiceLocalizationEditor : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core", "AssetTools", "Engine", "SSVoiceLocalization",
+                "Core", "AssetTools", "Engine", "SSVoiceLocalization", "EditorStyle",
             }
         );
 

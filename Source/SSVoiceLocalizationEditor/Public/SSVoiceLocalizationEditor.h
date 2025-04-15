@@ -8,7 +8,7 @@
 // Asset factories
 
 UCLASS()
-class SSVOICELOCALIZATIONEDITOR_API USSLocalizedVoiceAsset_Factory : public UFactory
+class SSVOICELOCALIZATIONEDITOR_API USSLocalizedVoiceSound_Factory : public UFactory
 {
     GENERATED_UCLASS_BODY()
     

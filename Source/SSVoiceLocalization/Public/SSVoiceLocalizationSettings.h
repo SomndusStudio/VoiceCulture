@@ -1,4 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+* Copyright (C) 2020-2025 Schartier Isaac
+*
+* Official Documentation: https://www.somndus-studio.com
+*/
 
 #pragma once
 
@@ -29,6 +33,12 @@ public:
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Voice Localization|General")
 	FString DefaultLanguage = TEXT("en");
 
+	/**
+	 * Still only in Editor/PIE
+	 */
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Voice Localization|General")
+	bool bUsePreviewLanguageInGame = false;
+	
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Voice Localization|General")
 	FString PreviewLanguage = TEXT("en");
 };

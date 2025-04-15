@@ -1,8 +1,11 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+* Copyright (C) 2020-2025 Schartier Isaac
+*
+* Official Documentation: https://www.somndus-studio.com
+*/
 
 
 #include "SSVoiceLocalizationStyle.h"
-
 
 #include "Interfaces/IPluginManager.h"
 #include "Styling/SlateStyle.h"
@@ -28,7 +31,7 @@ void FSSVoiceLocalizationStyle::Shutdown()
 
 FName FSSVoiceLocalizationStyle::GetStyleSetName()
 {
-	static FName StyleSetName(TEXT("AFTStyle"));
+	static FName StyleSetName(TEXT("SSVoiceLocalizationStyle"));
 	return StyleSetName;
 }
 
@@ -52,13 +55,18 @@ TSharedRef<FSlateStyleSet> FSSVoiceLocalizationStyle::Create()
 	const FVector2D Icon64x64(64.0f, 64.0f);
 	const FVector2D Icon128x128(128.0f, 128.0f);
 
-	TSharedRef<FSlateStyleSet> Style = MakeShareable(new FSlateStyleSet("SSVoiceLocalizationStyle"));
+	TSharedRef<FSlateStyleSet> Style = MakeShareable(new FSlateStyleSet(GetStyleSetName()));
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin("SSVoiceLocalization")->GetBaseDir() / TEXT("Resources"));
 
 	// Asset icon/thumbnail
-	Style->Set("ClassIcon.SSLocalizedVoiceAsset", new IMAGE_BRUSH(TEXT("SSLocalizedVoiceAsset128"), Icon20x20));
-	Style->Set("ClassThumbnail.SSLocalizedVoiceAsset", new IMAGE_BRUSH(TEXT("SSLocalizedVoiceAsset128"), Icon128x128));
+	Style->Set("ClassIcon.SSLocalizedVoiceSound", new IMAGE_BRUSH(TEXT("SSLocalizedVoiceSound128"), Icon20x20));
+	Style->Set("ClassThumbnail.SSLocalizedVoiceSound", new IMAGE_BRUSH(TEXT("SSLocalizedVoiceSound128"), Icon128x128));
 
+	Style->Set("SSLocalizedVoiceSoundEditor.Play", new IMAGE_BRUSH(TEXT("icon_Play_40x"), Icon40x40));
+	Style->Set("SSLocalizedVoiceSoundEditor.Play.Small", new IMAGE_BRUSH(TEXT("icon_Play_20x"), Icon20x20));
 	
+	Style->Set("SSLocalizedVoiceSoundEditor.Stop", new IMAGE_BRUSH(TEXT("icon_Stop_40x"), Icon40x40));
+	Style->Set("SSLocalizedVoiceSoundEditor.Stop.Small", new IMAGE_BRUSH(TEXT("icon_Stop_20x"), Icon20x20));
+
 	return Style;
 }
