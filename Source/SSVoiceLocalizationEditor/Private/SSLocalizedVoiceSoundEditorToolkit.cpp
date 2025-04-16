@@ -8,7 +8,7 @@
 #include "SSLocalizedVoiceSoundEditorToolkit.h"
 
 #include "SSLocalizedVoiceSound.h"
-#include "SSVoiceLocalizationStyle.h"
+#include "Utils/SSVoiceLocalizationUtils.h"
 
 #define LOCTEXT_NAMESPACE "SSLocalizedVoiceSoundEditor"
 
@@ -18,6 +18,7 @@ void FSSLocalizedVoiceSoundEditorCommands::RegisterCommands()
 {
 	UI_COMMAND(Play, "Play", "Play the localized voice", EUserInterfaceActionType::Button, FInputChord());
 	UI_COMMAND(Stop, "Stop", "Stop playback", EUserInterfaceActionType::Button, FInputChord());
+	UI_COMMAND(AutoFill, "AutoFill", "Automatically fills localized voice entries based on naming convention", EUserInterfaceActionType::Button, FInputChord());
 }
 
 void FSSLocalizedVoiceSoundEditorToolkit::Init(USSLocalizedVoiceSound* InAsset, const EToolkitMode::Type Mode,
@@ -130,6 +131,11 @@ void FSSLocalizedVoiceSoundEditorToolkit::BindGraphCommands()
 	ToolkitCommands->MapAction(
 		Commands.Stop,
 		FExecuteAction::CreateSP(this, &FSSLocalizedVoiceSoundEditorToolkit::StopSound));
+
+	ToolkitCommands->MapAction(
+		FSSLocalizedVoiceSoundEditorCommands::Get().AutoFill,
+		FExecuteAction::CreateSP(this, &FSSLocalizedVoiceSoundEditorToolkit::AutoFillLocalizedVoices)
+);
 }
 
 void FSSLocalizedVoiceSoundEditorToolkit::ExtendToolbar()
@@ -152,8 +158,8 @@ void FSSLocalizedVoiceSoundEditorToolkit::FillToolbar(FToolBarBuilder& ToolbarBu
 	ToolbarBuilder.BeginSection("Toolbar");
 	{
 		ToolbarBuilder.AddToolBarButton(FSSLocalizedVoiceSoundEditorCommands::Get().Play);
-
 		ToolbarBuilder.AddToolBarButton(FSSLocalizedVoiceSoundEditorCommands::Get().Stop);
+		ToolbarBuilder.AddToolBarButton(FSSLocalizedVoiceSoundEditorCommands::Get().AutoFill);
 	}
 
 	ToolbarBuilder.EndSection();
@@ -173,6 +179,29 @@ void FSSLocalizedVoiceSoundEditorToolkit::PlaySound()
 void FSSLocalizedVoiceSoundEditorToolkit::StopSound()
 {
 	GEditor->ResetPreviewAudioComponent();
+}
+
+void FSSLocalizedVoiceSoundEditorToolkit::AutoFillLocalizedVoices()
+{
+	if (!Asset)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[SSVoice] AutoFill: Invalid asset"));
+		return;
+	}
+
+	if (FSSVoiceLocalizationUtils::AutoPopulateFromNaming(Asset))
+	{
+		if (DetailsView.IsValid())
+		{
+			DetailsView->ForceRefresh();
+		}
+
+		UE_LOG(LogTemp, Log, TEXT("[SSVoice] AutoFill complete for '%s'"), *Asset->GetName());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[SSVoice] AutoFill: No matching entries found for '%s'"), *Asset->GetName());
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -8,4 +8,4 @@
 
 #include "Logging/LogMacros.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LogVoiceLocalizationSubsystem, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogVoiceLocalization, Log, All);

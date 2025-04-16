@@ -30,7 +30,7 @@ void USSVoiceLocalizationSubsystem::HandleStartGameInstance(UGameInstance* GameI
 	CurrentLanguage = VoiceLocalizationSettings->DefaultLanguage;
 	if (CurrentLanguage.IsEmpty())
 	{
-		UE_LOG(LogVoiceLocalizationSubsystem, Error, TEXT("%s : Language is empty !"), *GetNameSafe(this));
+		UE_LOG(LogVoiceLocalization, Error, TEXT("%s : Language is empty !"), *GetNameSafe(this));
 	}
 }
 
@@ -38,7 +38,7 @@ void USSVoiceLocalizationSubsystem::SetCurrentVoiceCulture(const FString& Langua
 {
 	CurrentLanguage = Language;
 
-	UE_LOG(LogVoiceLocalizationSubsystem, Log, TEXT("%s : Language switched to [%s]"), *GetNameSafe(this), *CurrentLanguage);
+	UE_LOG(LogVoiceLocalization, Log, TEXT("%s : Language switched to [%s]"), *GetNameSafe(this), *CurrentLanguage);
 }
 
 FString USSVoiceLocalizationSubsystem::GetCurrentVoiceCulture() const

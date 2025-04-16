@@ -67,6 +67,9 @@ TSharedRef<FSlateStyleSet> FSSVoiceLocalizationStyle::Create()
 	
 	Style->Set("SSLocalizedVoiceSoundEditor.Stop", new IMAGE_BRUSH(TEXT("icon_Stop_40x"), Icon40x40));
 	Style->Set("SSLocalizedVoiceSoundEditor.Stop.Small", new IMAGE_BRUSH(TEXT("icon_Stop_20x"), Icon20x20));
+	
+	Style->Set("SSLocalizedVoiceSoundEditor.AutoFill", new IMAGE_BRUSH(TEXT("icon_AutoFill_40x"), Icon40x40));
+	Style->Set("SSLocalizedVoiceSoundEditor.AutoFill.Small", new IMAGE_BRUSH(TEXT("icon_AutoFill_20x"), Icon20x20));
 
 	return Style;
 }

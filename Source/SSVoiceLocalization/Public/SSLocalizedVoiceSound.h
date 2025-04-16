@@ -17,7 +17,7 @@ struct FSSLocalizedAudioEntry
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FString LanguageCode;
+	FString Culture;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	USoundBase* Sound;
@@ -44,7 +44,7 @@ public:
 	USSLocalizedVoiceSound();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voice Localization")
-	TArray<FSSLocalizedAudioEntry> LocalizedAudio;
+	TArray<FSSLocalizedAudioEntry> LocalizedAudioEntries;
 
 	/**
 	 * Select current sound from langage

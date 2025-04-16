@@ -18,14 +18,14 @@ USSLocalizedVoiceSound::USSLocalizedVoiceSound()
 
 USoundBase* USSLocalizedVoiceSound::GetLocalizedSound(const FString& Language) const
 {
-	for (const auto& Entry : LocalizedAudio)
+	for (const auto& Entry : LocalizedAudioEntries)
 	{
-		if (Entry.LanguageCode.Equals(Language, ESearchCase::IgnoreCase))
+		if (Entry.Culture.Equals(Language, ESearchCase::IgnoreCase))
 		{
 			return Entry.Sound;
 		}
 	}
-	UE_LOG(LogVoiceLocalizationSubsystem, Error, TEXT("%s : Can't found valid LocalizedSound from given language [%s]"), *GetNameSafe(this), *Language);
+	UE_LOG(LogVoiceLocalization, Error, TEXT("%s : Can't found valid LocalizedSound from given language [%s]"), *GetNameSafe(this), *Language);
 
 	return nullptr;
 }
@@ -37,7 +37,7 @@ USoundBase* USSLocalizedVoiceSound::GetCurrentLocalizedSound() const
 		return GetLocalizedSound(Subsystem->GetCurrentVoiceCulture());
 	}
 
-	UE_LOG(LogVoiceLocalizationSubsystem, Error, TEXT("%s : Can't found valid CurrentLocalizedSound"), *GetNameSafe(this));
+	UE_LOG(LogVoiceLocalization, Error, TEXT("%s : Can't found valid CurrentLocalizedSound"), *GetNameSafe(this));
 	
 	return nullptr;
 }
@@ -75,7 +75,7 @@ USoundBase* USSLocalizedVoiceSound::GetPreviewLocalizedSound() const
 		return GetLocalizedSound(Subsystem->GetEditorPreviewLanguage());
 	}
 	
-	UE_LOG(LogVoiceLocalizationSubsystem, Error, TEXT("%s : Can't found valid PreviewLocalizedSound"), *GetNameSafe(this));
+	UE_LOG(LogVoiceLocalization, Error, TEXT("%s : Can't found valid PreviewLocalizedSound"), *GetNameSafe(this));
 
 	return nullptr;
 }

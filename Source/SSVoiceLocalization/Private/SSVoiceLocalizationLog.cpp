@@ -7,4 +7,4 @@
 
 #include "SSVoiceLocalizationLog.h"
 
-DEFINE_LOG_CATEGORY(LogVoiceLocalizationSubsystem);
+DEFINE_LOG_CATEGORY(LogVoiceLocalization);

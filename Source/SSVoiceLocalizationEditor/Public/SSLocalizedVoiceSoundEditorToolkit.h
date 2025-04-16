@@ -37,6 +37,10 @@ public:
 	/** Stops the currently playing sound */
 	TSharedPtr<FUICommandInfo> Stop;
 
+		
+	/** Try auto fill sounds from asset registry */
+	TSharedPtr<FUICommandInfo> AutoFill;
+	
 	/** Initialize commands */
 	virtual void RegisterCommands() override;
 };
@@ -82,7 +86,8 @@ private:
 	
 	void PlaySound();
 	void StopSound();
-
+	void AutoFillLocalizedVoices();
+	
 	TSharedPtr<FUICommandList> ToolbarCommands;
 	USSLocalizedVoiceSound* Asset;
 };
