@@ -72,19 +72,28 @@ void FAssetTypeActions_SSLocalizedVoiceSound::PlaySound(TWeakObjectPtr<USSLocali
 	}
 }
 
-bool FAssetTypeActions_SSLocalizedVoiceSound::IsSoundPlaying(USoundBase* Sound) const
+bool FAssetTypeActions_SSLocalizedVoiceSound::IsSoundPlaying(const FAssetData& AssetData) const
 {
-	UAudioComponent* PreviewComp = GEditor->GetPreviewAudioComponent();
-	return PreviewComp && PreviewComp->Sound == Sound && PreviewComp->IsPlaying();
+	const UAudioComponent* PreviewComp = GEditor->GetPreviewAudioComponent();
+	if (PreviewComp && PreviewComp->Sound && PreviewComp->IsPlaying())
+	{
+		if (PreviewComp->Sound->GetFName() == AssetData.AssetName)
+		{
+			if (PreviewComp->Sound->GetOutermost()->GetFName() == AssetData.PackageName)
+			{
+				return true;
+			}
+		}
+	}
+	
+	return false;
 }
 
 TSharedPtr<SWidget> FAssetTypeActions_SSLocalizedVoiceSound::GetThumbnailOverlay(const FAssetData& AssetData) const
 {
-	USSLocalizedVoiceSound* VoiceSound = Cast<USSLocalizedVoiceSound>(AssetData.GetAsset());
-
 	// Choose the button icon (Play or Stop) based on the sound status
-	auto OnGetDisplayBrushLambda = [this, VoiceSound]() -> const FSlateBrush* {
-		if (IsSoundPlaying(VoiceSound->GetPreviewLocalizedSound()))
+	auto OnGetDisplayBrushLambda = [this, AssetData]() -> const FSlateBrush* {
+		if (IsSoundPlaying(AssetData))
 		{
 			return FEditorStyle::GetBrush("MediaAsset.AssetActions.Stop.Large");
 		}
@@ -93,23 +102,24 @@ TSharedPtr<SWidget> FAssetTypeActions_SSLocalizedVoiceSound::GetThumbnailOverlay
 	};
 
 	// When you click the button
-	auto OnClickedLambda = [this, VoiceSound]() -> FReply
+	auto OnClickedLambda = [this, AssetData]() -> FReply
 	{
-		if (IsSoundPlaying(VoiceSound->GetPreviewLocalizedSound()))
+		if (IsSoundPlaying(AssetData))
 		{
 			ExecuteStop();
 		}
 		else
 		{
+			USSLocalizedVoiceSound* VoiceSound = Cast<USSLocalizedVoiceSound>(AssetData.GetAsset());
 			PlaySound(VoiceSound);
 		}
 		return FReply::Handled();
 	};
 
 	// Dynamic tooltip text (Play or Stop)
-	auto OnToolTipTextLambda = [this, VoiceSound]() -> FText
+	auto OnToolTipTextLambda = [this, AssetData]() -> FText
 	{
-		if (IsSoundPlaying(VoiceSound->GetPreviewLocalizedSound()))
+		if (IsSoundPlaying(AssetData))
 		{
 			return LOCTEXT("Thumbnail_StopSoundToolTip", "Stop selected sound");
 		}
@@ -125,9 +135,9 @@ TSharedPtr<SWidget> FAssetTypeActions_SSLocalizedVoiceSound::GetThumbnailOverlay
 
 
 	// Display the button only when: the mouse is hovering over it OR the sound is currently playing.
-	auto OnGetVisibilityLambda = [this, Box, VoiceSound]() -> EVisibility
+	auto OnGetVisibilityLambda = [this, Box, AssetData]() -> EVisibility
 	{
-		if (Box.IsValid() && (Box->IsHovered() || IsSoundPlaying(VoiceSound->GetPreviewLocalizedSound())))
+		if (Box.IsValid() && (Box->IsHovered() || IsSoundPlaying(AssetData)))
 		{
 			return EVisibility::Visible;
 		}

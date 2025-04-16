@@ -42,6 +42,7 @@ USoundBase* USSLocalizedVoiceSound::GetCurrentLocalizedSound() const
 	return nullptr;
 }
 
+#if ENGINE_MAJOR_VERSION >= 5
 float USSLocalizedVoiceSound::GetDuration() const
 {
 	if (USoundBase* Inner = GetEffectiveSound())
@@ -50,6 +51,7 @@ float USSLocalizedVoiceSound::GetDuration() const
 	}
 	return 0.0f;
 }
+#endif
 
 bool USSLocalizedVoiceSound::IsPlayable() const
 {

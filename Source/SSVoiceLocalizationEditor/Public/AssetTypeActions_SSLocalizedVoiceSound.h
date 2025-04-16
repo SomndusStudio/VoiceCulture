@@ -41,5 +41,5 @@ protected:
 	void ExecuteStop() const;
 
 	void PlaySound(TWeakObjectPtr<USSLocalizedVoiceSound> AssetPtr) const;
-	bool IsSoundPlaying(USoundBase* Sound) const;
+	bool IsSoundPlaying(const FAssetData& AssetData) const;
 };

@@ -33,12 +33,23 @@ void FSSLocalizedVoiceSoundEditorToolkit::Init(USSLocalizedVoiceSound* InAsset, 
 
 	const TSharedRef<FTabManager::FLayout> Layout = FTabManager::NewLayout("SSLocalizedVoiceSoundEditorLayout_v1")
 		->AddArea(
-			FTabManager::NewPrimaryArea()->SetOrientation(Orient_Horizontal)
-			                             ->Split(
-				                             FTabManager::NewStack()
-				                             ->SetSizeCoefficient(1.0f)
-				                             ->AddTab(DetailsTabID, ETabState::OpenedTab)
-			                             )
+			FTabManager::NewPrimaryArea()
+			->SetOrientation(Orient_Vertical)
+			->Split(
+				FTabManager::NewStack()
+				->SetSizeCoefficient(0.1f)
+				->SetHideTabWell(true)
+				->AddTab(GetToolbarTabId(), ETabState::OpenedTab)
+			)
+			->Split(FTabManager::NewSplitter()
+			        ->SetOrientation(Orient_Horizontal)
+			        ->SetSizeCoefficient(0.9f)
+			        ->Split
+			        (
+				        FTabManager::NewStack()
+				        ->SetSizeCoefficient(1.0f)
+				        ->AddTab(DetailsTabID, ETabState::OpenedTab)
+			        ))
 		);
 
 	InitAssetEditor(Mode, InitToolkitHost,
@@ -133,11 +144,6 @@ void FSSLocalizedVoiceSoundEditorToolkit::ExtendToolbar()
 	);
 
 	AddToolbarExtender(ToolbarExtender);
-
-	UE_LOG(LogTemp, Warning, TEXT("Icon Brush: %s"),
-	       *FSSVoiceLocalizationStyle::Get()->GetBrush("SSLocalizedVoiceSoundEditor.Play")->GetResourceName().ToString());
-	UE_LOG(LogTemp, Warning, TEXT("Icon Brush: %s"),
-	   *FSSVoiceLocalizationStyle::Get()->GetBrush("SSLocalizedVoiceSoundEditor.Play")->GetResourceName().ToString());
 }
 
 
@@ -151,19 +157,6 @@ void FSSLocalizedVoiceSoundEditorToolkit::FillToolbar(FToolBarBuilder& ToolbarBu
 	}
 
 	ToolbarBuilder.EndSection();
-
-	UE_LOG(LogTemp, Warning, TEXT("StyleName for PlayCommand: %s"),
-	*FSSLocalizedVoiceSoundEditorCommands::Get().Play->GetCommandName().ToString());
-	
-	UE_LOG(LogTemp, Warning, TEXT("StyleName for PlayCommand: %s"),
-*FSSLocalizedVoiceSoundEditorCommands::Get().Play->GetIcon().GetStyleName().ToString());
-
-	UE_LOG(LogTemp, Warning, TEXT("StyleName for PlayCommand: %s"),
-*FSSLocalizedVoiceSoundEditorCommands::Get().Play->GetIcon().GetStyleSetName().ToString());
-
-	UE_LOG(LogTemp, Warning, TEXT("StyleName for PlayCommand: %s"),
-*FSSLocalizedVoiceSoundEditorCommands::Get().Play->GetIcon().GetIcon()->GetResourceName().ToString());
-
 }
 
 void FSSLocalizedVoiceSoundEditorToolkit::PlaySound()

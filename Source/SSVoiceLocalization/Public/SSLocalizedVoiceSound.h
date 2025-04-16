@@ -8,6 +8,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "Sound/SoundBase.h"
 #include "SSLocalizedVoiceSound.generated.h"
 
 USTRUCT(BlueprintType)
@@ -61,7 +62,9 @@ public:
 	USoundBase* GetCurrentLocalizedSound() const;
 
 	// USoundBase overrides
+#if ENGINE_MAJOR_VERSION >= 5
 	virtual float GetDuration() const override;
+#endif
 	virtual bool IsPlayable() const override;
 	virtual void Parse(class FAudioDevice* AudioDevice, const UPTRINT NodeWaveInstanceHash, FActiveSound& ActiveSound, const FSoundParseParameters& ParseParams, TArray<FWaveInstance*>& WaveInstances) override;
 	
