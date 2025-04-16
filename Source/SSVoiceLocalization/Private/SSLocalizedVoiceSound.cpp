@@ -79,6 +79,27 @@ USoundBase* USSLocalizedVoiceSound::GetPreviewLocalizedSound() const
 
 	return nullptr;
 }
+
+void USSLocalizedVoiceSound::GetAssetRegistryTags(TArray<FAssetRegistryTag>& OutTags) const
+{
+	Super::GetAssetRegistryTags(OutTags);
+	
+	// On génère une string CSV comme "fr,en,ja"
+	FString Cultures;
+	for (const FSSLocalizedAudioEntry& Entry : LocalizedAudioEntries)
+	{
+		// ignore if empty sound
+		if (!Entry.Sound) continue;
+		
+		if (!Cultures.IsEmpty())
+		{
+			Cultures += TEXT(",");
+		}
+		Cultures += Entry.Culture.ToLower();
+	}
+
+	OutTags.Add(FAssetRegistryTag("VoiceCultures", Cultures, FAssetRegistryTag::TT_Hidden));
+}
 #endif
 
 USoundBase* USSLocalizedVoiceSound::GetEffectiveSound() const

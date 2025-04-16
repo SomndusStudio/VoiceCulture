@@ -70,8 +70,9 @@ public:
 	
 #if WITH_EDITOR
 	USoundBase* GetPreviewLocalizedSound() const;
+	virtual void GetAssetRegistryTags(TArray<FAssetRegistryTag>& OutTags) const override;
 #endif
-
+	
 protected:
 	USoundBase* GetEffectiveSound() const;
 	

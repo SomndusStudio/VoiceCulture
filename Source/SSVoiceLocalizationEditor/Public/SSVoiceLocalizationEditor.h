@@ -4,6 +4,7 @@
 #include "Modules/ModuleManager.h"
 #include "SSVoiceLocalizationEditor.generated.h"
 
+
 ////////////////////////////////////////////////////////////////////
 // Asset factories
 
@@ -27,4 +28,12 @@ class FSSVoiceLocalizationEditorModule : public IModuleInterface
 public:
     virtual void StartupModule() override;
     virtual void ShutdownModule() override;
+
+    void FillSomndusStudioMenu(FMenuBuilder& MenuBuilder);
+    void AddSomndusStudioMenu(FMenuBuilder& MenuBuilder);
+    
+    void OpenVoiceDashboardTab();
+    
+    TSharedRef<SDockTab> SpawnVoiceDashboardTab(const FSpawnTabArgs& Args);
+    
 };

@@ -41,4 +41,7 @@ public:
 	
 	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Voice Localization|General")
 	FString PreviewLanguage = TEXT("en");
+
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Voice Localization|Cultures")
+	TSet<FString> SupportedVoiceCultures;
 };

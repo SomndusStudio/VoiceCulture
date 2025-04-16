@@ -3,8 +3,14 @@
 
 #include "Utils/SSVoiceLocalizationUtils.h"
 
+#include "JsonObjectConverter.h"
+#include "SSVoiceLocalizationSettings.h"
 #include "AssetRegistry/AssetRegistryModule.h"
+#include "Async/Async.h"
+#include "Misc/FileHelper.h"
 #include "Misc/ScopedSlowTask.h"
+#include "Settings/SSVoiceAutofillStrategy.h"
+#include "Settings/SSVoiceLocalizationEditorSettings.h"
 #include "Sound/SoundCue.h"
 #include "Sound/SoundWave.h"
 #include "Utils/SSVoiceLocalizationUI.h"
@@ -16,96 +22,40 @@ bool FSSVoiceLocalizationUtils::AutoPopulateFromNaming(USSLocalizedVoiceSound* T
 		UE_LOG(LogTemp, Warning, TEXT("AutoPopulateFromNaming: Invalid asset"));
 		return false;
 	}
-	
+
 	const FString AssetName = TargetAsset->GetName(); // e.g. "LVA_NPC01_Hello"
 
-	// Extract suffix after the second underscore
-	TArray<FString> Parts;
-	AssetName.ParseIntoArray(Parts, TEXT("_"));
-
-	if (Parts.Num() < 3)
+	// Retrieve autofill settings
+	const USSVoiceLocalizationEditorSettings* Settings = GetDefault<USSVoiceLocalizationEditorSettings>();
+	if (!Settings || Settings->AutofillProfiles.Num() == 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Asset name '%s' doesn't follow LVA_{lang}_{name} pattern"), *AssetName);
+		UE_LOG(LogTemp, Warning, TEXT("[SSVoice] No autofill profile available."));
 		return false;
 	}
 
-	// Extract suffix part to match against
-	FString Suffix;
-	for (int32 i = 1; i < Parts.Num(); ++i) // ← attention : i = 1 car on ignore le préfixe
+	const FSSVoiceAutofillProfile& Profile = Settings->AutofillProfiles[0];
+	USSVoiceAutofillStrategy* Strategy = NewObject<USSVoiceAutofillStrategy>(
+		GetTransientPackage(), Profile.StrategyClass.LoadSynchronous());
+
+	if (!IsValid(Strategy))
 	{
-		Suffix += (i > 1 ? TEXT("_") : TEXT("")) + Parts[i];
+		UE_LOG(LogTemp, Warning, TEXT("[SSVoice] Profile '%s' has no valid strategy instance."), *Profile.ProfileName);
+		return false;
 	}
 
-	// ScopedSlowTask -> 0 : Start showing progress task
-	FScopedSlowTask SlowTask(1.f, FText::FromString(TEXT("Auto-filling localized voice entries...")));
-	SlowTask.MakeDialog(true); // true = affiche la barre dans l’UI
-	
-	// ScopedSlowTask -> 1 : Scan
-	SlowTask.EnterProgressFrame(0.2f, NSLOCTEXT("SSVoice", "AutoFillScan", "Scanning available sound assets..."));
-	
-	// Start scanning for matching SoundBase assets
-	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	// Show UI progress
+	FScopedSlowTask SlowTask(1.f, NSLOCTEXT("SSVoice", "AutoFillRunning", "Auto-filling localized voice entries..."));
+	SlowTask.MakeDialog(true);
+	SlowTask.EnterProgressFrame(0.5f, NSLOCTEXT("SSVoice", "AutoFillScanning", "Scanning assets..."));
 
-	FARFilter Filter;
-	Filter.ClassNames.Add(USoundBase::StaticClass()->GetFName());
-	// TODO : Make parameter in editor for scanning
-	// Filter.ClassNames.Add(USoundWave::StaticClass()->GetFName());
-	// Filter.ClassNames.Add(USoundCue::StaticClass()->GetFName());
-	Filter.bRecursiveClasses = true; //Include child classes of Sound base
-	
-	Filter.bRecursivePaths = true;
-	Filter.PackagePaths.Add(FName("/Game")); // You could expand this later
-
-	TArray<FAssetData> FoundAssets;
-	AssetRegistryModule.Get().GetAssets(Filter, FoundAssets);
-
-	// ScopedSlowTask -> 2 : Match new assets
-	SlowTask.EnterProgressFrame(0.8f, NSLOCTEXT("SSVoice", "AutoFillInsert", "Populating matching culture entries..."));
-	
 	TMap<FString, USoundBase*> LocalizedSounds;
-
-	for (const FAssetData& AssetData : FoundAssets)
+	if (!Strategy->ExecuteAutofill(AssetName, LocalizedSounds))
 	{
-		const FString Name = AssetData.AssetName.ToString(); // e.g. LVA_fr_NPC01_Hello
-
-		if (!Name.EndsWith(Suffix))
-			continue;
-
-		TArray<FString> NameParts;
-		Name.ParseIntoArray(NameParts, TEXT("_"));
-
-		if (NameParts.Num() < 3)
-			continue;
-
-		// Get 2nd part = Culture
-		const FString CultureCode = NameParts[1].ToLower();
-
-		// Rebuild expected name from parts
-		FString ReconstructedSuffix;
-		for (int32 i = 2; i < NameParts.Num(); ++i)
-		{
-			ReconstructedSuffix += (i > 2 ? TEXT("_") : TEXT("")) + NameParts[i];
-		}
-
-		// Must match the expected suffix exactly (no partial match)
-		if (ReconstructedSuffix != Suffix)
-			continue;
-		
-		USoundBase* Sound = Cast<USoundBase>(AssetData.GetAsset());
-		if (Sound)
-		{
-			LocalizedSounds.Add(CultureCode.ToLower(), Sound);
-		}
-	}
-
-	// Failure : 0 assets found
-	if (LocalizedSounds.Num() == 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[SSVoice] No new matching localized sounds found for '%s'"), *AssetName);
-
-		FSSVoiceLocalizationUI::NotifyFailure(NSLOCTEXT("SSVoice", "AutoFillFailure", "No new localized voices found."));
+		FSSVoiceLocalizationUI::NotifyFailure(NSLOCTEXT("SSVoice", "AutoFillFailure", "No matching assets found."));
 		return false;
 	}
+
+	SlowTask.EnterProgressFrame(0.5f, NSLOCTEXT("SSVoice", "AutoFillApplying", "Updating entries..."));
 
 	// Got existing entries
 	TSet<FString> ExistingCultures;
@@ -113,7 +63,7 @@ bool FSSVoiceLocalizationUtils::AutoPopulateFromNaming(USSLocalizedVoiceSound* T
 	{
 		ExistingCultures.Add(Entry.Culture.ToLower());
 	}
-	
+
 	// Fill the array
 	for (const auto& Pair : LocalizedSounds)
 	{
@@ -131,10 +81,106 @@ bool FSSVoiceLocalizationUtils::AutoPopulateFromNaming(USSLocalizedVoiceSound* T
 		TargetAsset->LocalizedAudioEntries.Add(Entry);
 	}
 
+	if (LocalizedSounds.Num() == 0)
+	{
+		FSSVoiceLocalizationUI::NotifyFailure(NSLOCTEXT("SSVoice", "AutoFillNoNew",
+		                                                "No new localized entries were added."));
+		return false;
+	}
+
 	TargetAsset->MarkPackageDirty();
 
-	UE_LOG(LogTemp, Log, TEXT("[SSVoice] Auto-fill added %d entries into '%s'"), LocalizedSounds.Num(), *AssetName);
-
 	FSSVoiceLocalizationUI::NotifySuccess(NSLOCTEXT("SSVoice", "AutoFillSuccess", "Auto-fill completed."));
+	UE_LOG(LogTemp, Log, TEXT("[SSVoice] Auto-fill added %d entries into '%s'"), LocalizedSounds.Num(), *AssetName);
 	return true;
+}
+
+void FSSVoiceLocalizationUtils::GenerateCultureCoverageReportAsync(
+	TFunction<void(const FSSVoiceCultureReport&)> OnComplete)
+{
+	Async(EAsyncExecution::ThreadPool, [OnComplete]()
+	{
+		TMap<FString, int32> TotalAssetsPerCulture;
+		TMap<FString, int32> CultureHitCount;
+
+		// Load asset registry
+		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(
+			"AssetRegistry");
+
+		FARFilter Filter;
+		Filter.ClassNames.Add(USSLocalizedVoiceSound::StaticClass()->GetFName());
+		Filter.bRecursiveClasses = true;
+		Filter.bRecursivePaths = true;
+		Filter.PackagePaths.Add(FName("/Game"));
+
+		TArray<FAssetData> FoundAssets;
+		AssetRegistryModule.Get().GetAssets(Filter, FoundAssets);
+
+		// Get supported voice cultures
+		const USSVoiceLocalizationSettings* VoiceLocalizationSettings = USSVoiceLocalizationSettings::GetSetting();
+		TSet<FString> AllCultures = VoiceLocalizationSettings->SupportedVoiceCultures;
+
+		for (const FAssetData& AssetData : FoundAssets)
+		{
+			// Lire le tag "VoiceCultures" directement
+			const FAssetTagValueRef Result = AssetData.TagsAndValues.FindTag("VoiceCultures");
+			if (!Result.IsSet())
+			{
+				continue;
+			}
+
+			const FString CultureString = Result.GetValue();
+
+			TArray<FString> Cultures;
+			CultureString.ParseIntoArray(Cultures, TEXT(","));
+
+			for (const FString& Culture : Cultures)
+			{
+				FString Normalized = Culture.ToLower();
+				CultureHitCount.FindOrAdd(Normalized)++;
+			}
+
+			// On considère que tous les assets sont comptés comme Total
+			for (const FString& Culture : AllCultures)
+			{
+				TotalAssetsPerCulture.FindOrAdd(Culture)++;
+			}
+		}
+
+		FSSVoiceCultureReport Report;
+		Report.GeneratedAt = FDateTime::UtcNow();
+
+		for (const FString& Culture : AllCultures)
+		{
+			FSSVoiceCultureReportEntry Entry;
+			Entry.Culture = Culture;
+			Entry.TotalAssets = TotalAssetsPerCulture.FindRef(Culture);
+			Entry.AssetsWithCulture = CultureHitCount.FindRef(Culture);
+			Report.Entries.Add(Entry);
+		}
+
+		// Save report
+		FString Json;
+		FJsonObjectConverter::UStructToJsonObjectString(Report, Json);
+
+		FString Path = FPaths::ProjectSavedDir() / TEXT("SSVoiceLocalization/VoiceCultureReport.json");
+		FFileHelper::SaveStringToFile(Json, *Path);
+
+		// Return to game thread
+		AsyncTask(ENamedThreads::GameThread, [Report, OnComplete]()
+		{
+			OnComplete(Report);
+		});
+	});
+}
+
+bool FSSVoiceLocalizationUtils::LoadSavedCultureReport(FSSVoiceCultureReport& OutReport)
+{
+	const FString Path = FPaths::ProjectSavedDir() / TEXT("SSVoiceLocalization/VoiceCultureReport.json");
+
+	FString Json;
+	if (!FFileHelper::LoadFileToString(Json, *Path))
+		return false;
+
+	return FJsonObjectConverter::JsonObjectStringToUStruct(Json, &OutReport, 0, 0);
 }
