@@ -8,3 +8,9 @@ bool USSVoiceAutofillStrategy::ExecuteAutofill_Implementation(const FString& InB
 {
 	return false;
 }
+
+bool USSVoiceAutofillStrategy::ExecuteOneCultureAutofillInAsset_Implementation(USSLocalizedVoiceSound* TargetAsset,
+	const FString& CultureCode, bool bOverrideExisting, FSSLocalizedAudioEntry& OutNewEntry)
+{
+	return false;
+}

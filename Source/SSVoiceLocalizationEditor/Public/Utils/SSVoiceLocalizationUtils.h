@@ -15,4 +15,8 @@ public:
 	static void GenerateCultureCoverageReportAsync(TFunction<void(const FSSVoiceCultureReport&)> OnComplete);
 
 	static bool LoadSavedCultureReport(FSSVoiceCultureReport& OutReport);
+	
+	static void AutoFillCultureAsync(const FString& TargetCulture, bool bOverrideExisting,
+	                          TFunction<void(int32 ModifiedAssetCount)> OnCompleted);
+	static void GenerateActorListJson();
 };

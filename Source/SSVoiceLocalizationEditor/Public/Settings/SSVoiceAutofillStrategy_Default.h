@@ -35,4 +35,5 @@ public:
 	bool bRecursiveClasses = true;
 	
 	virtual bool ExecuteAutofill_Implementation(const FString& InBaseName, TMap<FString, USoundBase*>& OutCultureToSound) const override;
+	virtual bool ExecuteOneCultureAutofillInAsset_Implementation(USSLocalizedVoiceSound* TargetAsset, const FString& CultureCode, bool bOverrideExisting, FSSLocalizedAudioEntry& OutNewEntry) override;
 };

@@ -3,9 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SSLocalizedVoiceSound.h"
 #include "UObject/Object.h"
 #include "SSVoiceAutofillStrategy.generated.h"
 
+class USSLocalizedVoiceSound;
 /**
  * Abstract base class for voice autofill strategies.
  * Defines how voice assets are located and matched to a given localized voice sound.
@@ -24,4 +26,18 @@ public:
 	 */
 	UFUNCTION(BlueprintNativeEvent)
 	bool ExecuteAutofill(const FString& InBaseName, TMap<FString, USoundBase*>& OutCultureToSound) const;
+
+	/**
+	 * Try to autofill a specific culture in a specific asset (optimized version).
+	 * @param TargetAsset The LocalizedVoiceSound to process
+	 * @param CultureCode The culture to match (e.g. "fr")
+	 * @param bOverrideExisting Whether to override if the culture is already set
+	 * @return true if something was added or updated
+	 */
+	UFUNCTION(BlueprintNativeEvent)
+	bool ExecuteOneCultureAutofillInAsset(
+		USSLocalizedVoiceSound* TargetAsset,
+		const FString& CultureCode,
+		bool bOverrideExisting, FSSLocalizedAudioEntry& OutNewEntry
+	);
 };

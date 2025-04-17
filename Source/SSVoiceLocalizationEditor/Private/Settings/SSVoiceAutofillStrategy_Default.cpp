@@ -3,6 +3,7 @@
 
 #include "Settings/SSVoiceAutofillStrategy_Default.h"
 
+#include "SSLocalizedVoiceSound.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Sound/SoundBase.h"
 
@@ -94,4 +95,76 @@ bool USSVoiceAutofillStrategy_Default::ExecuteAutofill_Implementation(const FStr
 	}
 
 	return OutCultureToSound.Num() > 0;
+}
+
+bool USSVoiceAutofillStrategy_Default::ExecuteOneCultureAutofillInAsset_Implementation(
+	USSLocalizedVoiceSound* TargetAsset, const FString& CultureCode, bool bOverrideExisting, FSSLocalizedAudioEntry& OutNewEntry)
+{
+	if (!TargetAsset)
+		return false;
+
+	const FString AssetName = TargetAsset->GetName(); // ex: LVA_NPC01_Hello
+
+	// Suffix = ce qu’il y a après le premier "_"
+	TArray<FString> Parts;
+	AssetName.ParseIntoArray(Parts, TEXT("_"));
+
+	if (Parts.Num() < 2)
+		return false;
+
+	FString Suffix;
+	for (int32 i = 1; i < Parts.Num(); ++i)
+	{
+		if (i > 1)
+			Suffix += TEXT("_");
+		Suffix += Parts[i];
+	}
+
+	// Ex: culture = fr → on cherche A_fr_NPC01_Hello, KQ_fr_NPC01_Hello, etc.
+	const FString TargetSuffix = CultureCode.ToLower() + TEXT("_") + Suffix;
+
+	FAssetRegistryModule& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+
+	FARFilter Filter;
+	Filter.ClassNames.Add(USoundBase::StaticClass()->GetFName());
+	Filter.bRecursiveClasses = true;
+	Filter.bRecursivePaths = true;
+	Filter.PackagePaths.Add("/Game");
+
+	TArray<FAssetData> FoundAssets;
+	AssetRegistry.Get().GetAssets(Filter, FoundAssets);
+
+	for (const FAssetData& AssetData : FoundAssets)
+	{
+		const FString CandidateName = AssetData.AssetName.ToString();
+
+		if (!CandidateName.EndsWith(TargetSuffix))
+			continue;
+
+		// Found match
+		USoundBase* Matched = Cast<USoundBase>(AssetData.GetAsset());
+		if (!Matched)
+			continue;
+
+		// Check if already present
+		for (FSSLocalizedAudioEntry& Entry : TargetAsset->LocalizedAudioEntries)
+		{
+			if (Entry.Culture.ToLower() == CultureCode.ToLower())
+			{
+				if (!bOverrideExisting)
+					return false;
+
+				OutNewEntry = Entry;
+				OutNewEntry.Sound = Matched;
+				return true;
+			}
+		}
+
+		// Add new entry
+		OutNewEntry.Culture = CultureCode.ToLower();
+		OutNewEntry.Sound = Matched;
+		return true;
+	}
+
+	return false;
 }
