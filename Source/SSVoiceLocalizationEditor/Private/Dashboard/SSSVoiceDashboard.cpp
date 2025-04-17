@@ -4,6 +4,8 @@
 #include "Dashboard/SSSVoiceDashboard.h"
 
 #include "SSVoiceLocalizationSettings.h"
+#include "WorkspaceMenuStructure.h"
+#include "WorkspaceMenuStructureModule.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Dom/JsonValue.h"
 #include "Misc/FileHelper.h"
@@ -20,32 +22,83 @@
 
 #define LOCTEXT_NAMESPACE "SSVoiceLocalization"
 
-const FName SSSVoiceDashboard::LeftTabName("Settings");
-const FName SSSVoiceDashboard::PrincipalTabName("Voice coverage");
+const FName SSSVoiceDashboard::OverviewTabId("Overview");
+const FName SSSVoiceDashboard::VoiceActorTabName("Voice Actors");
 
-void SSSVoiceDashboard::Construct(const FArguments& InArgs)
+void SSSVoiceDashboard::Construct(const FArguments& InArgs, const TSharedPtr<SWindow>& OwningWindow, const TSharedRef<SDockTab>& OwningTab)
 {
 	// Load report
 	FSSVoiceLocalizationUtils::LoadSavedCultureReport(CultureReport);
 
 	// Load actors
 	LoadActorListFromJson();
+	
+	// Crée un TabManager temporaire (non attaché à un level editor)
+	TSharedRef<FTabManager::FLayout> Layout = FTabManager::NewLayout("SSSVoiceDashboardLayout_v1")
+		->AddArea
+		(
+			FTabManager::NewPrimaryArea()
+			->SetOrientation(Orient_Horizontal)
+			->Split
+			(
+				FTabManager::NewStack()
+				->AddTab(OverviewTabId, ETabState::OpenedTab)
+				->AddTab(VoiceActorTabName, ETabState::OpenedTab)
+				->SetForegroundTab(OverviewTabId)
+			)
+		);
 
+	
+	// Crée un TabManager local
+	TabManager = FGlobalTabmanager::Get()->NewTabManager(OwningTab);
 
+	// Enregistre les spawners
+	TabManager->RegisterTabSpawner(OverviewTabId, FOnSpawnTab::CreateSP(this, &SSSVoiceDashboard::SpawnDashboardTab))
+		.SetDisplayName(FText::FromString("Overview"))
+		.SetGroup(WorkspaceMenu::GetMenuStructure().GetDeveloperToolsMiscCategory());
+
+	TabManager->RegisterTabSpawner(VoiceActorTabName, FOnSpawnTab::CreateSP(this, &SSSVoiceDashboard::SpawnVoiceActorTab))
+	.SetDisplayName(FText::FromString("Voice Actors"))
+	.SetGroup(WorkspaceMenu::GetMenuStructure().GetDeveloperToolsMiscCategory());
+
+	// Génère le layout complet
 	ChildSlot
 	[
-		SNew(SSplitter)
-		.PhysicalSplitterHandleSize(3.0f)
-		.Style(FEditorStyle::Get(), "DetailsView.Splitter")
-		+ SSplitter::Slot()
-		.Value(0.25f)
+		TabManager->RestoreFrom(Layout, TSharedPtr<SWindow>()).ToSharedRef()
+	];
+}
+
+TSharedRef<SDockTab> SSSVoiceDashboard::SpawnDashboardTab(const FSpawnTabArgs& SpawnTabArgs)
+{
+	return SNew(SDockTab)
+		.TabRole(ETabRole::PanelTab)
 		[
-			BuildLeftPanel()
-		]
-		+ SSplitter::Slot()
-		.Value(0.75f)
+			SNew(SSplitter)
+			.PhysicalSplitterHandleSize(3.0f)
+			.Style(FEditorStyle::Get(), "DetailsView.Splitter")
+			+ SSplitter::Slot()
+			.Value(0.25f)
+			[
+				BuildLeftPanel()
+			]
+			+ SSplitter::Slot()
+			.Value(0.75f)
+			[
+				BuildRightPanel()
+			]
+		];
+}
+
+TSharedRef<SDockTab> SSSVoiceDashboard::SpawnVoiceActorTab(const FSpawnTabArgs& SpawnTabArgs)
+{
+	return SNew(SDockTab)
+	.TabRole(ETabRole::PanelTab)
+	[
+		SNew(SVerticalBox)
+		// --- Voice Assets Info
+		+ SVerticalBox::Slot().FillHeight(1.0f).Padding(8)
 		[
-			BuildRightPanel()
+			BuildAssetSection()
 		]
 	];
 }
@@ -122,12 +175,6 @@ TSharedRef<SWidget> SSSVoiceDashboard::BuildRightPanel()
 			+ SVerticalBox::Slot().AutoHeight().Padding(4)
 			[
 				SNew(SSeparator)
-			]
-
-			// --- Voice Assets Info
-			+ SVerticalBox::Slot().FillHeight(1.0f).Padding(8)
-			[
-				BuildAssetSection()
 			];
 }
 
@@ -210,6 +257,12 @@ TSharedRef<ITableRow> SSSVoiceDashboard::GenerateActorRow(TSharedPtr<FString> In
 				]
 			]
 		];
+}
+
+void SSSVoiceDashboard::RebuildUI()
+{
+	// this->Construct(SSSVoiceDashboard::FArguments());
+	Invalidate(EInvalidateWidgetReason::Layout | EInvalidateWidgetReason::Paint);
 }
 
 TSharedRef<SWidget> SSSVoiceDashboard::BuildActorList()
@@ -456,9 +509,8 @@ TSharedRef<SWidget> SSSVoiceDashboard::BuildCoverageSection()
 
 							FSSVoiceLocalizationUI::NotifySuccess(
 								NSLOCTEXT("SSVoice", "ScanningCulturesSuccess", "Scanning cultures with success"));
-
-							// Rebuild UI
-							this->Construct(SSSVoiceDashboard::FArguments());
+							
+							RebuildUI();
 						}
 					);
 
@@ -512,7 +564,7 @@ void SSSVoiceDashboard::OpenAutoFillConfirmationDialog(const FString& Culture)
 				UE_LOG(LogTemp, Log, TEXT("[SSVoice] Modified voice: %d"), ModifiedCount);
 
 				// Optionnel : Refresh Dashboard
-				this->Construct(SSSVoiceDashboard::FArguments());
+				RebuildUI();
 			}
 		);
 	}));

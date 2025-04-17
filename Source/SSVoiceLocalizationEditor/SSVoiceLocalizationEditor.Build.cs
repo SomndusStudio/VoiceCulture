@@ -31,7 +31,7 @@ public class SSVoiceLocalizationEditor : ModuleRules
                 "AssetTools",
                 "ToolMenus",
                 "InputCore", 
-                "JsonUtilities", "Json",
+                "JsonUtilities", "Json", "WorkspaceMenuStructure",
             }
         );
     }

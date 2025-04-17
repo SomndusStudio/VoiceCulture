@@ -37,12 +37,17 @@ UObject* USSLocalizedVoiceSound_Factory::FactoryCreateNew(UClass* Class, UObject
 
 TSharedRef<SDockTab> FSSVoiceLocalizationEditorModule::SpawnVoiceDashboardTab(const FSpawnTabArgs& Args)
 {
-	return SNew(SDockTab)
+	TSharedRef<SDockTab> NewTab = SNew(SDockTab)
 		.TabRole(ETabRole::NomadTab)
-		.Label(NSLOCTEXT("SSVoice", "VoiceDashboardTabLabel", "Voice Dashboard"))
-		[
-			SNew(SSSVoiceDashboard)
-		];
+		.Label(NSLOCTEXT("SSVoice", "VoiceDashboardTabLabel", "Voice Dashboard"));
+	
+	TSharedRef<SSSVoiceDashboard> DashboardWidget = MakeShared<SSSVoiceDashboard>();
+	
+	DashboardWidget->Construct(SSSVoiceDashboard::FArguments(), Args.GetOwnerWindow(), NewTab);
+
+	NewTab->SetContent(DashboardWidget);
+
+	return NewTab;
 }
 
 void FSSVoiceLocalizationEditorModule::OpenVoiceDashboardTab()

@@ -11,18 +11,21 @@ class SSVOICELOCALIZATIONEDITOR_API SSSVoiceDashboard : public SCompoundWidget
 public:
 	SLATE_BEGIN_ARGS(SSSVoiceDashboard) {}
 	SLATE_END_ARGS()
-
-	void Construct(const FArguments& InArgs);
+	
+	void Construct(const FArguments& InArgs, const TSharedPtr<SWindow>& OwningWindow, const TSharedRef<SDockTab>& OwningTab);
 
 protected:
 	/** Last loaded report */
 	FSSVoiceCultureReport CultureReport;
 	
 private:
-	static const FName LeftTabName;
-	static const FName PrincipalTabName;
+	static const FName OverviewTabId;
+	static const FName VoiceActorTabName;
 	
 	TSharedPtr<FTabManager> TabManager;
+
+	TSharedRef<SDockTab> SpawnDashboardTab(const FSpawnTabArgs& SpawnTabArgs);
+	TSharedRef<SDockTab> SpawnVoiceActorTab(const FSpawnTabArgs& SpawnTabArgs);
 	
 	TSharedRef<SWidget> BuildLeftPanel();
 	TSharedRef<SWidget> BuildRightPanel();
@@ -39,6 +42,8 @@ private:
 	
 protected:
 
+	void RebuildUI();
+	
 	void OpenAutoFillConfirmationDialog(const FString& Culture);
 
 	// List of actor names extracted from LocalizedVoiceSound asset names
