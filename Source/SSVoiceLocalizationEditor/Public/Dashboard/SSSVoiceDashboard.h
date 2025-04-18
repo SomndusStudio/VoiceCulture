@@ -3,8 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ContentBrowserDelegates.h"
 #include "SSVoiceLocalizationTypes.h"
 
+
+class FSSVoiceFilterCompleteCulture;
+class FSSVoiceFilterMissingCulture;
+class FSSVoiceFilterActorName;
 
 class SSVOICELOCALIZATIONEDITOR_API SSSVoiceDashboard : public SCompoundWidget
 {
@@ -33,19 +38,38 @@ private:
 	TSharedRef<SWidget> BuildCultureListWidget();
 	TSharedRef<SWidget> BuildCoverageSection();
 	
-	TSharedRef<SWidget> BuildAssetSection();
-
+	////////////////////////////////////////////////////////////////////
+	// Voice actor tab part
+	struct FLocalizedVoiceAssetDisplayData
+	{
+		FString AssetName;
+		FString AssetPath;
+		TArray<FString> AvailableCultures;
+		int32 TotalCultures = 0;
+	};
+	
+	FARFilter Filter;
+	FSetARFilterDelegate DelegateFilter;
+	FRefreshAssetViewDelegate DelegateRefreshView;
+	FGetCurrentSelectionDelegate DelegateSelection;
+	
+	TArray<FAssetData> AssetsVoiceActor;
+	
+	TSharedPtr<FSSVoiceFilterActorName> FilterActorName;
+	TSharedPtr<FSSVoiceFilterMissingCulture> FilterMissingCulture;
+	TSharedPtr<FSSVoiceFilterCompleteCulture> FilterCompleteCulture;
+	
 	TSharedRef<SWidget> BuildActorList();
 	TSharedRef<SWidget> BuildAssetList();
 	
 	TSharedRef<ITableRow> GenerateActorRow(TSharedPtr<FString> InItem, const TSharedRef<STableViewBase>& OwnerTable);
 	
-protected:
+	TSharedRef<ITableRow> GenerateVoiceSoundAssetRow(TSharedPtr<FLocalizedVoiceAssetDisplayData> InItem, const TSharedRef<STableViewBase>& OwnerTable);
 
-	void RebuildUI();
+	void ResetVoiceAssetsCache();
+	void UpdateContentBrowser();
+	void LoadActorListFromJson();
 	
-	void OpenAutoFillConfirmationDialog(const FString& Culture);
-
 	// List of actor names extracted from LocalizedVoiceSound asset names
 	TArray<TSharedPtr<FString>> AllActorItems;
 	TArray<TSharedPtr<FString>> FilteredActorItems; // Liste filtrée
@@ -56,8 +80,6 @@ protected:
 	// Currently selected actor from the list
 	TSharedPtr<FString> SelectedActor;
 	
-	void LoadActorListFromJson();
-
 	// Search Actor
 	TSharedPtr<SSearchBox> ActorSearchBox;
 	FString ActorSearchFilter;
@@ -67,17 +89,13 @@ protected:
 	// Asset list côté droit
 	TArray<TSharedPtr<FAssetData>> FilteredAssetsForActor;
 	TSharedPtr<SListView<TSharedPtr<FAssetData>>> AssetListView;
-
-	// Chargement
-	struct FLocalizedVoiceAssetDisplayData
-	{
-		FString AssetName;
-		FString AssetPath;
-		TArray<FString> AvailableCultures;
-		int32 TotalCultures = 0;
-	};
-	TArray<TSharedPtr<FLocalizedVoiceAssetDisplayData>> VoiceAssetCards;
-	TSharedPtr<SListView<TSharedPtr<FLocalizedVoiceAssetDisplayData>>> VoiceAssetListView;
 	
 	void RefreshAssetsForSelectedActor();
+	
+protected:
+
+	void RebuildUI();
+	
+	void OpenAutoFillConfirmationDialog(const FString& Culture);
+	
 };

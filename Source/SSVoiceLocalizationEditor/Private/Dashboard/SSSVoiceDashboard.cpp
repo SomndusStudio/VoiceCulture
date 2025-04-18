@@ -3,6 +3,7 @@
 
 #include "Dashboard/SSSVoiceDashboard.h"
 
+#include "SSVoiceLocalizationFilters.h"
 #include "SSVoiceLocalizationSettings.h"
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
@@ -14,7 +15,6 @@
 #include "Slate/SSSVoiceSlateComponents.h"
 #include "Utils/SSVoiceLocalizationUI.h"
 #include "Utils/SSVoiceLocalizationUtils.h"
-#include "Widgets/Input/SSearchBox.h"
 #include "Widgets/Layout/SExpandableArea.h"
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Layout/SSeparator.h"
@@ -33,7 +33,7 @@ void SSSVoiceDashboard::Construct(const FArguments& InArgs, const TSharedPtr<SWi
 	// Load actors
 	LoadActorListFromJson();
 	
-	// Crée un TabManager temporaire (non attaché à un level editor)
+	// Instantiated TabManager layout in memory (non attaché à un level editor)
 	TSharedRef<FTabManager::FLayout> Layout = FTabManager::NewLayout("SSSVoiceDashboardLayout_v1")
 		->AddArea
 		(
@@ -49,10 +49,10 @@ void SSSVoiceDashboard::Construct(const FArguments& InArgs, const TSharedPtr<SWi
 		);
 
 	
-	// Crée un TabManager local
+	// Create the TabManager
 	TabManager = FGlobalTabmanager::Get()->NewTabManager(OwningTab);
 
-	// Enregistre les spawners
+	// Tab Spawners
 	TabManager->RegisterTabSpawner(OverviewTabId, FOnSpawnTab::CreateSP(this, &SSSVoiceDashboard::SpawnDashboardTab))
 		.SetDisplayName(FText::FromString("Overview"))
 		.SetGroup(WorkspaceMenu::GetMenuStructure().GetDeveloperToolsMiscCategory());
@@ -61,7 +61,7 @@ void SSSVoiceDashboard::Construct(const FArguments& InArgs, const TSharedPtr<SWi
 	.SetDisplayName(FText::FromString("Voice Actors"))
 	.SetGroup(WorkspaceMenu::GetMenuStructure().GetDeveloperToolsMiscCategory());
 
-	// Génère le layout complet
+	// Generate whole layout
 	ChildSlot
 	[
 		TabManager->RestoreFrom(Layout, TSharedPtr<SWindow>()).ToSharedRef()
@@ -87,20 +87,6 @@ TSharedRef<SDockTab> SSSVoiceDashboard::SpawnDashboardTab(const FSpawnTabArgs& S
 				BuildRightPanel()
 			]
 		];
-}
-
-TSharedRef<SDockTab> SSSVoiceDashboard::SpawnVoiceActorTab(const FSpawnTabArgs& SpawnTabArgs)
-{
-	return SNew(SDockTab)
-	.TabRole(ETabRole::PanelTab)
-	[
-		SNew(SVerticalBox)
-		// --- Voice Assets Info
-		+ SVerticalBox::Slot().FillHeight(1.0f).Padding(8)
-		[
-			BuildAssetSection()
-		]
-	];
 }
 
 TSharedRef<SWidget> SSSVoiceDashboard::BuildLeftPanel()
@@ -178,228 +164,10 @@ TSharedRef<SWidget> SSSVoiceDashboard::BuildRightPanel()
 			];
 }
 
-
-TSharedRef<SWidget> SSSVoiceDashboard::BuildAssetSection()
-{
-	return SNew(SVerticalBox)
-
-			// Title
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(10.f, 20.f, 10.f, 10.f)
-			[
-				SNew(STextBlock)
-				.Text(LOCTEXT("LocalizedVoiceAssetsTitle", "Localized Voice Assets"))
-				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 14))
-			]
-
-			+ SVerticalBox::Slot()
-			.FillHeight(1.f)
-			.Padding(10.f)
-			[
-				SNew(SSplitter)
-				.Orientation(Orient_Horizontal)
-
-				// === Left: Actor list ===
-				+ SSplitter::Slot()
-				.Value(0.35f)
-				[
-					BuildActorList()
-				]
-
-				// === Right: Voice assets for actor (TODO) ===
-				+ SSplitter::Slot()
-				.Value(0.65f)
-				[
-					BuildAssetList()
-				]
-			];
-}
-
-TSharedRef<ITableRow> SSSVoiceDashboard::GenerateActorRow(TSharedPtr<FString> InItem,
-                                                          const TSharedRef<STableViewBase>& OwnerTable)
-{
-	return SNew(STableRow<TSharedPtr<FString>>, OwnerTable)
-		[
-			SNew(SBorder)
-			.BorderImage(FCoreStyle::Get().GetBrush("NoBorder"))
-			.Padding(0)
-			[
-				SNew(SHorizontalBox)
-
-				// Barre verticale à gauche
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				[
-					SNew(SBox)
-					.WidthOverride(4.f)
-					[
-						SNew(SBorder)
-						.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-						.BorderBackgroundColor(FLinearColor(0.8f, 0.3f, 1.0f)) // Barre rose-violet
-					]
-				]
-
-				// Fond principal de la "card"
-				+ SHorizontalBox::Slot()
-				.FillWidth(1.0f)
-				[
-					SNew(SBorder)
-					.Padding(FMargin(8, 4))
-					.BorderImage(FCoreStyle::Get().GetBrush("NoBorder"))
-					.BorderBackgroundColor(FLinearColor(0.45f, 0.2f, 0.4f)) // Fond violet-rose plus contrasté
-					[
-						SNew(STextBlock)
-						.Text(FText::FromString(*InItem))
-						.Font(FCoreStyle::Get().GetFontStyle("NormalFont"))
-						.ColorAndOpacity(FLinearColor::White)
-					]
-				]
-			]
-		];
-}
-
 void SSSVoiceDashboard::RebuildUI()
 {
 	// this->Construct(SSSVoiceDashboard::FArguments());
 	Invalidate(EInvalidateWidgetReason::Layout | EInvalidateWidgetReason::Paint);
-}
-
-TSharedRef<SWidget> SSSVoiceDashboard::BuildActorList()
-{
-	return SNew(SVerticalBox)
-			// Rescan Button
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.f, 0.f, 0.f, 5.f)
-			[
-				SNew(SButton)
-				.Text(FText::FromString("Rescan Actors"))
-				.OnClicked_Lambda([this]()
-				{
-					FSSVoiceLocalizationUtils::GenerateActorListJson();
-					LoadActorListFromJson(); // ← à écrire juste après
-					return FReply::Handled();
-				})
-			]
-			// Barre de recherche
-			+ SVerticalBox::Slot().AutoHeight().Padding(4)
-			[
-				SAssignNew(ActorSearchBox, SSearchBox)
-				.HintText(LOCTEXT("ActorSearchHint", "Search Voice Actor..."))
-				.OnTextChanged_Lambda([this](const FText& NewText)
-				{
-					ActorSearchFilter = NewText.ToString();
-					RefreshActorFilter();
-				})
-			]
-
-			// Titre
-			+ SVerticalBox::Slot().AutoHeight().Padding(4)
-			[
-				SNew(STextBlock)
-				.Text(LOCTEXT("ActorsHeader", "Voice Actors"))
-				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 14))
-			]
-
-			// Liste des acteurs
-			+ SVerticalBox::Slot().FillHeight(1.f).Padding(4)
-			[
-				SAssignNew(ActorListView, SListView<TSharedPtr<FString>>)
-				.ItemHeight(24)
-				.ListItemsSource(&FilteredActorItems)
-				.OnGenerateRow(this, &SSSVoiceDashboard::GenerateActorRow)
-				.SelectionMode(ESelectionMode::Single)
-				.OnSelectionChanged_Lambda([this](TSharedPtr<FString> Item, ESelectInfo::Type)
-				{
-					SelectedActor = Item;
-					// Call refresh voice sound asset list from selected actor
-					RefreshAssetsForSelectedActor();
-				})
-			];
-}
-
-TSharedRef<SWidget> SSSVoiceDashboard::BuildAssetList()
-{
-	return SNew(SVerticalBox)
-
-		+ SVerticalBox::Slot().AutoHeight().Padding(4, 4, 4, 4)
-		[
-			SNew(STextBlock)
-			.Text(LOCTEXT("VoiceAssetsHeader", "Voice Assets for Selected Actor"))
-			.Font(FCoreStyle::GetDefaultFontStyle("Bold", 14))
-		]
-
-		+ SVerticalBox::Slot().FillHeight(1.f).Padding(4)
-		[
-			SAssignNew(VoiceAssetListView, SListView<TSharedPtr<FLocalizedVoiceAssetDisplayData>>)
-			.ListItemsSource(&VoiceAssetCards)
-			.SelectionMode(ESelectionMode::None)
-			.OnGenerateRow_Lambda([](TSharedPtr<FLocalizedVoiceAssetDisplayData> Item,
-			                         const TSharedRef<STableViewBase>& Owner)
-			{
-				return SNew(STableRow<TSharedPtr<FLocalizedVoiceAssetDisplayData>>, Owner)
-					[
-						SNew(SOverlay)
-						+ SOverlay::Slot().Padding(0, 4)
-						[
-							SNew(SBorder)
-							.Padding(0)
-							.BorderImage(FEditorStyle::GetBrush("WhiteBrush"))
-							.BorderBackgroundColor(FLinearColor(0.3f, 0.25f, 0.0f))
-							// Fond opaque
-							[
-								SNew(SOverlay)
-
-								// Main Content
-								+ SOverlay::Slot()
-								[
-									SNew(SVerticalBox)
-
-									+ SVerticalBox::Slot().AutoHeight().Padding(8)
-									[
-										SNew(SHorizontalBox)
-
-										// Nom de l'asset
-										+ SHorizontalBox::Slot().FillWidth(1).VAlign(VAlign_Center)
-										[
-											SNew(STextBlock)
-											.Text(FText::FromString(Item->AssetName))
-											.Font(FCoreStyle::GetDefaultFontStyle("Bold", 12))
-										]
-
-										// Infos culture
-										+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(4, 0, 4, 0)
-										[
-											SNew(STextBlock)
-											.Text(FText::Format(
-												LOCTEXT("CultureInfo", "{0}/{1} ({2})"),
-												FText::AsNumber(Item->AvailableCultures.Num()),
-												FText::AsNumber(Item->TotalCultures),
-												FText::FromString(FString::Join(Item->AvailableCultures, TEXT(", ")))
-											))
-										]
-									]
-								]
-
-								// Colored bar at the bottom
-								+ SOverlay::Slot()
-								.VAlign(VAlign_Bottom)
-								[
-									SNew(SBorder)
-									.Padding(FMargin(0.f))
-									.BorderImage(FEditorStyle::GetBrush("WhiteBrush"))
-									.BorderBackgroundColor(FLinearColor(1.f, 0.78f, 0.f, 1.f)) // Ton type color
-									[
-										SNew(SBox)
-										.HeightOverride(4.f)
-									]
-								]
-							]
-						]
-					];
-			})
-		];
 }
 
 TSharedRef<SWidget> SSSVoiceDashboard::BuildCultureListWidget()
@@ -631,57 +399,6 @@ void SSSVoiceDashboard::RefreshActorFilter()
 	if (ActorListView.IsValid())
 	{
 		ActorListView->RequestListRefresh();
-	}
-}
-
-void SSSVoiceDashboard::RefreshAssetsForSelectedActor()
-{
-	VoiceAssetCards.Empty();
-
-	if (!SelectedActor.IsValid())
-		return;
-
-	const FString& TargetActor = *SelectedActor;
-	const USSVoiceLocalizationSettings* Settings = USSVoiceLocalizationSettings::GetSetting();
-	const TSet<FString> AllCultures = Settings ? Settings->SupportedVoiceCultures : TSet<FString>();
-
-	FAssetRegistryModule& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-
-	FARFilter Filter;
-	Filter.ClassNames.Add(USSLocalizedVoiceSound::StaticClass()->GetFName());
-	Filter.bRecursivePaths = true;
-	Filter.PackagePaths.Add("/Game");
-
-	TArray<FAssetData> Assets;
-	AssetRegistry.Get().GetAssets(Filter, Assets);
-
-	for (const FAssetData& AssetData : Assets)
-	{
-		const FString Name = AssetData.AssetName.ToString();
-
-		if (!Name.Contains(TargetActor))
-			continue;
-
-		// Culture info via tag
-		TArray<FString> Cultures;
-		const FAssetTagValueRef TagValueRef = AssetData.TagsAndValues.FindTag("VoiceCultures");
-		if (TagValueRef.IsSet())
-		{
-			TagValueRef.GetValue().ParseIntoArray(Cultures, TEXT(","));
-		}
-
-		TSharedPtr<FLocalizedVoiceAssetDisplayData> Entry = MakeShared<FLocalizedVoiceAssetDisplayData>();
-		Entry->AssetPath = AssetData.ObjectPath.ToString(); // ← on garde le chemin, on chargera plus tard si besoin
-		Entry->AssetName = Name;
-		Entry->AvailableCultures = Cultures;
-		Entry->TotalCultures = AllCultures.Num();
-
-		VoiceAssetCards.Add(Entry);
-	}
-
-	if (VoiceAssetListView.IsValid())
-	{
-		VoiceAssetListView->RequestListRefresh();
 	}
 }
 

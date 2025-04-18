@@ -32,6 +32,8 @@ public class SSVoiceLocalizationEditor : ModuleRules
                 "ToolMenus",
                 "InputCore", 
                 "JsonUtilities", "Json", "WorkspaceMenuStructure",
+                "ContentBrowser",
+                "ContentBrowserData",
             }
         );
     }

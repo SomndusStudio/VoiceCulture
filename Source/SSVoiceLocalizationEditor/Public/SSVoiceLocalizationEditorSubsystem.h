@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ContentBrowserModule.h"
 #include "SSVoiceLocalizationTypes.h"
 #include "Settings/SSVoiceAutofillStrategy.h"
 #include "Subsystems/EngineSubsystem.h"
@@ -37,7 +38,24 @@ public:
 	// Returns whether the subsystem is properly initialized
 	bool IsReady() const;
 
+	/**
+	 * @brief Returns all Voice Actor assets in project
+	 * @param Assets TArray<FAssetData>
+	 * @param bShowSlowTask bool
+	 */
+	UFUNCTION(BlueprintCallable, Category="Voice Localization")
+	static void GetAssetsFromVoiceActor(TArray<FAssetData>& Assets, FString VoiceActorName, const bool bShowSlowTask = true);
 
+	static void GetAssetsWithCulture(TArray<FAssetData>& Assets, const bool bCompleteCulture = true, const bool bShowSlowTask = true);
+	
+	UFUNCTION(BlueprintCallable, Category="Voice Localization")
+	static void GetAssetsWithMissingCulture(TArray<FAssetData>& Assets, const bool bShowSlowTask = true);
+
+	UFUNCTION(BlueprintCallable, Category="Voice Localization")
+    static void GetAssetsWithCompleteCulture(TArray<FAssetData>& Assets, const bool bShowSlowTask = true);
+	
+	static FContentBrowserModule& GetVoiceContentBrowser();
+	
 private:
 	UPROPERTY(Transient)
 	USSVoiceAutofillStrategy* CachedStrategy;
