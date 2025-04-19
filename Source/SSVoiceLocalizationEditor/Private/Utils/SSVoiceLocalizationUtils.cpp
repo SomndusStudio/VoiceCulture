@@ -31,7 +31,7 @@ bool FSSVoiceLocalizationUtils::AutoPopulateFromNaming(USSLocalizedVoiceSound* T
 
 	// Retrieve autofill settings
 	auto* VLEditorSubsystem = GEditor->GetEditorSubsystem<USSVoiceLocalizationEditorSubsystem>();
-	USSVoiceAutofillStrategy* Strategy = VLEditorSubsystem->GetActiveStrategy();
+	auto* Strategy = VLEditorSubsystem->GetActiveStrategy();
 
 	if (!IsValid(Strategy))
 	{
@@ -207,18 +207,10 @@ void FSSVoiceLocalizationUtils::AutoFillCultureAsync(
 	AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, [TargetCulture, bOverrideExisting, SlowTask, OnCompleted]()
 	{
 		const FString NormalizedCulture = TargetCulture.ToLower();
-
-		// Query the asset registry for all localized voice assets
-		FAssetRegistryModule& AssetRegistry = USSVoiceLocalizationEditorSubsystem::GetAssetRegistryModule();
-
-		FARFilter Filter;
-		Filter.ClassPaths.Add(USSLocalizedVoiceSound::StaticClass()->GetClassPathName());
-		Filter.bRecursivePaths = true;
-		Filter.PackagePaths.Add(FName("/Game"));
-
-		TArray<FAssetData> AssetList;
-		AssetRegistry.Get().GetAssets(Filter, AssetList);
-
+		
+		// 1. Retrieve assets
+		TArray<FAssetData> AssetList = USSVoiceLocalizationEditorSubsystem::GetAllLocalizeVoiceSoundAssets();
+		
 		// Filter down to only the assets that need autofill
 		TArray<FAssetData> AssetsToProcess;
 		for (const FAssetData& AssetData : AssetList)

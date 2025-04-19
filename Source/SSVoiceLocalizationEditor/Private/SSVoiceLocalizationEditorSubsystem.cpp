@@ -106,6 +106,39 @@ bool USSVoiceLocalizationEditorSubsystem::IsReady() const
 	return CachedStrategy != nullptr;
 }
 
+TArray<FAssetData> USSVoiceLocalizationEditorSubsystem::GetAllSoundBaseAssets(bool bRecursivePaths)
+{
+	FAssetRegistryModule& AssetRegistry = GetAssetRegistryModule();
+	AssetRegistry.Get().SearchAllAssets(true);
+
+	FARFilter Filter;
+	Filter.ClassPaths.Add(USoundBase::StaticClass()->GetClassPathName());
+	Filter.bRecursiveClasses = true;
+	Filter.bRecursivePaths = bRecursivePaths;
+	Filter.PackagePaths.Add(FName("/Game"));
+
+	TArray<FAssetData> FoundAssets;
+	AssetRegistry.Get().GetAssets(Filter, FoundAssets);
+
+	return FoundAssets;
+}
+
+TArray<FAssetData> USSVoiceLocalizationEditorSubsystem::GetAllLocalizeVoiceSoundAssets()
+{
+	// 1. Prepare registry
+	FAssetRegistryModule& AssetRegistry = GetAssetRegistryModule();
+
+	FARFilter Filter;
+	Filter.ClassPaths.Add(USSLocalizedVoiceSound::StaticClass()->GetClassPathName());
+	Filter.bRecursivePaths = true;
+	Filter.PackagePaths.Add(FName("/Game"));
+
+	TArray<FAssetData> FoundAssets;
+	AssetRegistry.Get().GetAssets(Filter, FoundAssets);
+
+	return FoundAssets;
+}
+
 void USSVoiceLocalizationEditorSubsystem::GetAssetsFromVoiceActor(TArray<FAssetData>& Assets, FString VoiceActorName,
                                                                   const bool bShowSlowTask)
 {
@@ -115,12 +148,6 @@ void USSVoiceLocalizationEditorSubsystem::GetAssetsFromVoiceActor(TArray<FAssetD
 
 	TArray<FAssetData> AssetsAll;
 	TSet<FAssetData> VoiceActorAssets;
-
-	FARFilter Filter;
-	Filter.ClassPaths.Add(USSLocalizedVoiceSound::StaticClass()->GetClassPathName());
-	Filter.bRecursivePaths = true;
-	Filter.PackagePaths.Add("/Game");
-
 	/*
 	FScopedSlowTask SlowTask{
 		static_cast<float>(AssetsAll.Num()),
@@ -130,7 +157,8 @@ void USSVoiceLocalizationEditorSubsystem::GetAssetsFromVoiceActor(TArray<FAssetD
 	SlowTask.MakeDialog(false, false);
 	*/
 
-	AssetRegistry.Get().GetAssets(Filter, Assets);
+	// 1. Retrieve assets
+	Assets = GetAllLocalizeVoiceSoundAssets();
 
 	for (const auto& AssetData : Assets)
 	{

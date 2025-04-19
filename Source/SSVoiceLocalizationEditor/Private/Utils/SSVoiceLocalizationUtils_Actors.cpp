@@ -7,47 +7,23 @@
 
 #include "Utils/SSVoiceLocalizationUtils.h"
 
-#include "JsonObjectConverter.h"
 #include "SSVoiceLocalizationEditorSubsystem.h"
-#include "SSVoiceLocalizationSettings.h"
-#include "AssetRegistry/AssetRegistryModule.h"
 #include "Async/Async.h"
 #include "Misc/FileHelper.h"
 #include "Misc/ScopedSlowTask.h"
 #include "Settings/SSVoiceAutofillStrategy.h"
-#include "Settings/SSVoiceLocalizationEditorSettings.h"
-#include "Sound/SoundCue.h"
-#include "Utils/SSVoiceLocalizationUI.h"
 
 void FSSVoiceLocalizationUtils::GenerateActorListJson()
 {
-	// 1. Prepare registry
-	FAssetRegistryModule& AssetRegistry = USSVoiceLocalizationEditorSubsystem::GetAssetRegistryModule();
-
-	FARFilter Filter;
-	Filter.ClassPaths.Add(USSLocalizedVoiceSound::StaticClass()->GetClassPathName());
-	Filter.bRecursivePaths = true;
-	Filter.PackagePaths.Add(FName("/Game"));
-
-	TArray<FAssetData> FoundAssets;
-	AssetRegistry.Get().GetAssets(Filter, FoundAssets);
-
-	// 2. Parse actor names
+	// 1. Use active strategy 
+	auto* VLEditorSubsystem = GEditor->GetEditorSubsystem<USSVoiceLocalizationEditorSubsystem>();
+	auto* Strategy = VLEditorSubsystem->GetActiveStrategy();
+	
 	TSet<FString> UniqueActors;
 
-	for (const FAssetData& AssetData : FoundAssets)
-	{
-		const FString AssetName = AssetData.AssetName.ToString(); // e.g. LVA_NPC01_Hello
-		TArray<FString> Parts;
-		AssetName.ParseIntoArray(Parts, TEXT("_"));
-
-		if (Parts.Num() >= 3)
-		{
-			UniqueActors.Add(Parts[1]); // Actor = 2nd part
-		}
-	}
-
-	// 3. Convert to JSON array
+	Strategy->ExecuteExtractActorNameFromAssetRegistry(UniqueActors);
+	
+	// 2. Convert to JSON array
 	TArray<TSharedPtr<FJsonValue>> JsonArray;
 	for (const FString& Actor : UniqueActors)
 	{

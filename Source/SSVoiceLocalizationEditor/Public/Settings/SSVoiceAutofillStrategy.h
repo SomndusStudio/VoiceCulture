@@ -81,4 +81,10 @@ public:
 		const FString& CultureCode,
 		bool bOverrideExisting, FSSLocalizedAudioEntry& OutNewEntry
 	);
+
+	UFUNCTION(BlueprintNativeEvent)
+	bool ExecuteExtractActorNameFromAsset(const FAssetData& AssetData, FString& OutActorName);
+
+	UFUNCTION(BlueprintNativeEvent)
+	bool ExecuteExtractActorNameFromAssetRegistry(TSet<FString>& OutUniqueActors);
 };

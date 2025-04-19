@@ -55,18 +55,8 @@ bool USSVoiceAutofillStrategy_Default::ExecuteAutofill_Implementation(const FStr
 	}
 
 	// Step 2: Get all SoundBase assets
-	FAssetRegistryModule& AssetRegistry = USSVoiceLocalizationEditorSubsystem::GetAssetRegistryModule();
-	AssetRegistry.Get().SearchAllAssets(true);
-
-	FARFilter Filter;
-	Filter.ClassPaths.Add(USoundBase::StaticClass()->GetClassPathName());
-	Filter.bRecursiveClasses = bRecursivePaths;
-	Filter.bRecursivePaths = bRecursivePaths;
-	Filter.PackagePaths.Add(FName("/Game"));
-
-	TArray<FAssetData> FoundAssets;
-	AssetRegistry.Get().GetAssets(Filter, FoundAssets);
-
+	TArray<FAssetData> FoundAssets = USSVoiceLocalizationEditorSubsystem::GetAllSoundBaseAssets(bRecursivePaths);
+	
 	// Step 3: Match assets
 	for (const FAssetData& Asset : FoundAssets)
 	{
@@ -148,17 +138,9 @@ bool USSVoiceAutofillStrategy_Default::ExecuteOneCultureAutofillInAsset_Implemen
 	// Ex: culture = fr → on cherche A_fr_NPC01_Hello, KQ_fr_NPC01_Hello, etc.
 	const FString TargetSuffix = CultureCode.ToLower() + TEXT("_") + Suffix;
 
-	FAssetRegistryModule& AssetRegistry = USSVoiceLocalizationEditorSubsystem::GetAssetRegistryModule();
-
-	FARFilter Filter;
-	Filter.ClassPaths.Add(USoundBase::StaticClass()->GetClassPathName());
-	Filter.bRecursiveClasses = true;
-	Filter.bRecursivePaths = true;
-	Filter.PackagePaths.Add("/Game");
-
-	TArray<FAssetData> FoundAssets;
-	AssetRegistry.Get().GetAssets(Filter, FoundAssets);
-
+	// 1. Retrieve assets
+	TArray<FAssetData> FoundAssets = USSVoiceLocalizationEditorSubsystem::GetAllSoundBaseAssets();
+	
 	for (const FAssetData& AssetData : FoundAssets)
 	{
 		const FString CandidateName = AssetData.AssetName.ToString();
@@ -192,4 +174,38 @@ bool USSVoiceAutofillStrategy_Default::ExecuteOneCultureAutofillInAsset_Implemen
 	}
 
 	return false;
+}
+
+bool USSVoiceAutofillStrategy_Default::ExecuteExtractActorNameFromAsset_Implementation(const FAssetData& AssetData,
+	FString& OutActorName)
+{
+	const FString AssetName = AssetData.AssetName.ToString(); // e.g. LVA_NPC01_Hello
+	TArray<FString> Parts;
+	AssetName.ParseIntoArray(Parts, TEXT("_"));
+
+	if (Parts.Num() >= 3)
+	{
+		OutActorName = Parts[1];
+		return true;
+	}
+	return false;
+}
+
+bool USSVoiceAutofillStrategy_Default::ExecuteExtractActorNameFromAssetRegistry_Implementation(
+	TSet<FString>& OutUniqueActors)
+{
+	// 1. Retrieve assets
+	TArray<FAssetData> FoundAssets = USSVoiceLocalizationEditorSubsystem::GetAllLocalizeVoiceSoundAssets();
+	
+	// 2. Parse actor names
+	for (const FAssetData& AssetData : FoundAssets)
+	{
+		FString ActorName;
+		if (ExecuteExtractActorNameFromAsset(AssetData, ActorName))
+		{
+			OutUniqueActors.Add(ActorName); // Actor = 2nd part
+		}			
+	}
+
+	return true;
 }

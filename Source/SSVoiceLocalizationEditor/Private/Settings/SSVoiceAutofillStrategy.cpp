@@ -8,7 +8,7 @@
 #include "Settings/SSVoiceAutofillStrategy.h"
 
 bool USSVoiceAutofillStrategy::ExecuteAutofill_Implementation(const FString& InBaseName,
-	TMap<FString, USoundBase*>& OutCultureToSound) const
+                                                              TMap<FString, USoundBase*>& OutCultureToSound) const
 {
 	return false;
 }
@@ -38,3 +38,13 @@ FText USSVoiceAutofillStrategy::DisplayMatchCultureRulePatternExample_Implementa
 	return FText::FromString("Not Specified (You should do it)");
 }
 
+bool USSVoiceAutofillStrategy::ExecuteExtractActorNameFromAsset_Implementation(const FAssetData& AssetData,
+	FString& OutActorName)
+{
+	return false;
+}
+
+bool USSVoiceAutofillStrategy::ExecuteExtractActorNameFromAssetRegistry_Implementation(TSet<FString>& OutUniqueActors)
+{
+	return false;
+}

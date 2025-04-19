@@ -85,6 +85,9 @@ public:
 	 */
 	bool IsReady() const;
 
+	static TArray<FAssetData> GetAllSoundBaseAssets(bool bRecursivePaths = true);
+	static TArray<FAssetData> GetAllLocalizeVoiceSoundAssets();
+	
 	/**
 	 * Retrieves all Voice Actor assets associated with a given voice actor name.
 	 *
