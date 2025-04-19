@@ -1,4 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+* Copyright (C) 2020-2025 Schartier Isaac
+*
+* Official Documentation: https://www.somndus-studio.com
+*/
 
 
 #include "SSVoiceLocalizationEditorSubsystem.h"
@@ -21,8 +25,24 @@ void USSVoiceLocalizationEditorSubsystem::Initialize(FSubsystemCollectionBase& C
 void USSVoiceLocalizationEditorSubsystem::Deinitialize()
 {
 	CachedStrategy = nullptr;
-	
+
 	Super::Deinitialize();
+}
+
+FAssetRegistryModule& USSVoiceLocalizationEditorSubsystem::GetAssetRegistryModule()
+{
+	return FModuleManager::LoadModuleChecked<FAssetRegistryModule>(
+		"AssetRegistry");
+}
+
+void USSVoiceLocalizationEditorSubsystem::ChangeActiveProfileFromName(FString ProfileName)
+{
+	auto* AutofillProfile = GetProfileFromName(ProfileName);
+
+	auto* EditorSettings = USSVoiceLocalizationEditorSettings::GetMutableSetting();
+	EditorSettings->ActiveVoiceProfileName = AutofillProfile->ProfileName;
+
+	OnVoiceProfileNameChange();
 }
 
 void USSVoiceLocalizationEditorSubsystem::OnVoiceProfileNameChange()
@@ -46,9 +66,9 @@ const FSSVoiceAutofillProfile* USSVoiceLocalizationEditorSubsystem::GetActivePro
 	const auto* EditorSettings = USSVoiceLocalizationEditorSettings::GetSetting();
 	if (!EditorSettings || EditorSettings->AutofillProfiles.Num() == 0)
 	{
-		return nullptr;
+		return &EditorSettings->FallbackProfile;
 	}
-	
+
 	for (const auto& Profile : EditorSettings->AutofillProfiles)
 	{
 		if (Profile.ProfileName == EditorSettings->ActiveVoiceProfileName)
@@ -56,7 +76,27 @@ const FSSVoiceAutofillProfile* USSVoiceLocalizationEditorSubsystem::GetActivePro
 			return &Profile;
 		}
 	}
-	
+
+	// If not found (Default internal profile)
+	return &EditorSettings->FallbackProfile;
+}
+
+const FSSVoiceAutofillProfile* USSVoiceLocalizationEditorSubsystem::GetProfileFromName(FString ProfileName) const
+{
+	const auto* EditorSettings = USSVoiceLocalizationEditorSettings::GetSetting();
+	if (!EditorSettings || EditorSettings->AutofillProfiles.Num() == 0)
+	{
+		return &EditorSettings->FallbackProfile;
+	}
+
+	for (const auto& Profile : EditorSettings->AutofillProfiles)
+	{
+		if (Profile.ProfileName == ProfileName)
+		{
+			return &Profile;
+		}
+	}
+
 	// If not found (Default internal profile)
 	return &EditorSettings->FallbackProfile;
 }
@@ -66,17 +106,18 @@ bool USSVoiceLocalizationEditorSubsystem::IsReady() const
 	return CachedStrategy != nullptr;
 }
 
-void USSVoiceLocalizationEditorSubsystem::GetAssetsFromVoiceActor(TArray<FAssetData>& Assets, FString VoiceActorName, const bool bShowSlowTask)
+void USSVoiceLocalizationEditorSubsystem::GetAssetsFromVoiceActor(TArray<FAssetData>& Assets, FString VoiceActorName,
+                                                                  const bool bShowSlowTask)
 {
-	FAssetRegistryModule& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-	
+	FAssetRegistryModule& AssetRegistry = GetAssetRegistryModule();
+
 	if (AssetRegistry.Get().IsLoadingAssets()) return;
-	
+
 	TArray<FAssetData> AssetsAll;
 	TSet<FAssetData> VoiceActorAssets;
-	
+
 	FARFilter Filter;
-	Filter.ClassNames.Add(USSLocalizedVoiceSound::StaticClass()->GetFName());
+	Filter.ClassPaths.Add(USSLocalizedVoiceSound::StaticClass()->GetClassPathName());
 	Filter.bRecursivePaths = true;
 	Filter.PackagePaths.Add("/Game");
 
@@ -88,9 +129,9 @@ void USSVoiceLocalizationEditorSubsystem::GetAssetsFromVoiceActor(TArray<FAssetD
 	};
 	SlowTask.MakeDialog(false, false);
 	*/
-	
+
 	AssetRegistry.Get().GetAssets(Filter, Assets);
-	
+
 	for (const auto& AssetData : Assets)
 	{
 		const FString Name = AssetData.AssetName.ToString();
@@ -108,27 +149,27 @@ void USSVoiceLocalizationEditorSubsystem::GetAssetsFromVoiceActor(TArray<FAssetD
 }
 
 void USSVoiceLocalizationEditorSubsystem::GetAssetsWithCulture(TArray<FAssetData>& Assets, const bool bCompleteCulture,
-	const bool bShowSlowTask)
+                                                               const bool bShowSlowTask)
 {
-	FAssetRegistryModule& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-	
+	FAssetRegistryModule& AssetRegistry = GetAssetRegistryModule();
+
 	if (AssetRegistry.Get().IsLoadingAssets()) return;
-	
+
 	const USSVoiceLocalizationSettings* Settings = USSVoiceLocalizationSettings::GetSetting();
 	const TSet<FString> AllCultures = Settings ? Settings->SupportedVoiceCultures : TSet<FString>();
 	int32 AllCultureCount = AllCultures.Num();
 
 	// Avoid array edition inf iteration
 	TArray<FAssetData> AllAssets = Assets;
-	
+
 	for (const auto& AssetData : AllAssets)
 	{
-		const FAssetTagValueRef Result = AssetData.TagsAndValues.FindTag("VoiceCultures");
+		const FAssetTagValueRef CultureTag = AssetData.TagsAndValues.FindTag("VoiceCultures");
 		TSet<FString> PresentCultures;
 
-		if (Result.IsSet())
+		if (CultureTag.IsSet())
 		{
-			const FString CultureString = Result.GetValue();
+			const FString CultureString = CultureTag.GetValue();
 
 			TArray<FString> Cultures;
 			CultureString.ParseIntoArray(Cultures, TEXT(","));
@@ -165,7 +206,7 @@ void USSVoiceLocalizationEditorSubsystem::GetAssetsWithMissingCulture(TArray<FAs
 }
 
 void USSVoiceLocalizationEditorSubsystem::GetAssetsWithCompleteCulture(TArray<FAssetData>& Assets,
-	const bool bShowSlowTask)
+                                                                       const bool bShowSlowTask)
 {
 	GetAssetsWithCulture(Assets, true, bShowSlowTask);
 }

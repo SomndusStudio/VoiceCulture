@@ -1,4 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+* Copyright (C) 2020-2025 Schartier Isaac
+*
+* Official Documentation: https://www.somndus-studio.com
+*/
 
 
 #include "Utils/SSVoiceLocalizationUtils.h"
@@ -18,10 +22,10 @@
 void FSSVoiceLocalizationUtils::GenerateActorListJson()
 {
 	// 1. Prepare registry
-	FAssetRegistryModule& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	FAssetRegistryModule& AssetRegistry = USSVoiceLocalizationEditorSubsystem::GetAssetRegistryModule();
 
 	FARFilter Filter;
-	Filter.ClassNames.Add(USSLocalizedVoiceSound::StaticClass()->GetFName());
+	Filter.ClassPaths.Add(USSLocalizedVoiceSound::StaticClass()->GetClassPathName());
 	Filter.bRecursivePaths = true;
 	Filter.PackagePaths.Add(FName("/Game"));
 

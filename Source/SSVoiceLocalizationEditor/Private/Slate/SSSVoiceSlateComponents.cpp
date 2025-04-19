@@ -1,4 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+* Copyright (C) 2020-2025 Schartier Isaac
+*
+* Official Documentation: https://www.somndus-studio.com
+*/
 
 
 #include "SSVoiceLocalizationEditor/Public/Slate/SSSVoiceSlateComponents.h"
@@ -39,14 +43,17 @@ void SSSAutofillProfileSelector::LoadProfiles()
 	if (!Settings)
 		return;
 
-	for (const FSSVoiceAutofillProfile& Profile : Settings->AutofillProfiles)
+	// Got all existing profiles
+	for (const auto& Profile : Settings->AutofillProfiles)
 	{
 		ProfileOptions.Add(MakeShared<FSSVoiceAutofillProfile>(Profile));
 	}
 
-	if (ProfileOptions.Num() > 0)
+	// Default selection
+	for (const auto& ProfileOption : ProfileOptions)
 	{
-		CurrentSelection = ProfileOptions[0];
+		if (ProfileOption.Get()->ProfileName == Settings->ActiveVoiceProfileName)
+			CurrentSelection = ProfileOption;
 	}
 }
 

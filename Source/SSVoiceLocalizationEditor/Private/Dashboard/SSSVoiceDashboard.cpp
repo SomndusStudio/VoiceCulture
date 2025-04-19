@@ -1,18 +1,22 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+* Copyright (C) 2020-2025 Schartier Isaac
+*
+* Official Documentation: https://www.somndus-studio.com
+*/
 
 
 #include "Dashboard/SSSVoiceDashboard.h"
 
+#include "EditorStyleSet.h"
+#include "SSVoiceLocalizationEditorSubsystem.h"
 #include "SSVoiceLocalizationFilters.h"
 #include "SSVoiceLocalizationSettings.h"
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
-#include "AssetRegistry/AssetRegistryModule.h"
 #include "Dom/JsonValue.h"
 #include "Misc/FileHelper.h"
 #include "Misc/ScopedSlowTask.h"
 #include "Serialization/JsonSerializer.h"
-#include "Slate/SSSVoiceSlateComponents.h"
 #include "Utils/SSVoiceLocalizationUI.h"
 #include "Utils/SSVoiceLocalizationUtils.h"
 #include "Widgets/Layout/SExpandableArea.h"
@@ -25,14 +29,15 @@
 const FName SSSVoiceDashboard::OverviewTabId("Overview");
 const FName SSSVoiceDashboard::VoiceActorTabName("Voice Actors");
 
-void SSSVoiceDashboard::Construct(const FArguments& InArgs, const TSharedPtr<SWindow>& OwningWindow, const TSharedRef<SDockTab>& OwningTab)
+void SSSVoiceDashboard::Construct(const FArguments& InArgs, const TSharedPtr<SWindow>& OwningWindow,
+                                  const TSharedRef<SDockTab>& OwningTab)
 {
 	// Load report
 	FSSVoiceLocalizationUtils::LoadSavedCultureReport(CultureReport);
 
 	// Load actors
 	LoadActorListFromJson();
-	
+
 	// Instantiated TabManager layout in memory (non attaché à un level editor)
 	TSharedRef<FTabManager::FLayout> Layout = FTabManager::NewLayout("SSSVoiceDashboardLayout_v1")
 		->AddArea
@@ -48,18 +53,19 @@ void SSSVoiceDashboard::Construct(const FArguments& InArgs, const TSharedPtr<SWi
 			)
 		);
 
-	
+
 	// Create the TabManager
 	TabManager = FGlobalTabmanager::Get()->NewTabManager(OwningTab);
 
 	// Tab Spawners
 	TabManager->RegisterTabSpawner(OverviewTabId, FOnSpawnTab::CreateSP(this, &SSSVoiceDashboard::SpawnDashboardTab))
-		.SetDisplayName(FText::FromString("Overview"))
-		.SetGroup(WorkspaceMenu::GetMenuStructure().GetDeveloperToolsMiscCategory());
+	          .SetDisplayName(FText::FromString("Overview"))
+	          .SetGroup(WorkspaceMenu::GetMenuStructure().GetDeveloperToolsMiscCategory());
 
-	TabManager->RegisterTabSpawner(VoiceActorTabName, FOnSpawnTab::CreateSP(this, &SSSVoiceDashboard::SpawnVoiceActorTab))
-	.SetDisplayName(FText::FromString("Voice Actors"))
-	.SetGroup(WorkspaceMenu::GetMenuStructure().GetDeveloperToolsMiscCategory());
+	TabManager->RegisterTabSpawner(VoiceActorTabName,
+	                               FOnSpawnTab::CreateSP(this, &SSSVoiceDashboard::SpawnVoiceActorTab))
+	          .SetDisplayName(FText::FromString("Voice Actors"))
+	          .SetGroup(WorkspaceMenu::GetMenuStructure().GetDeveloperToolsMiscCategory());
 
 	// Generate whole layout
 	ChildSlot
@@ -68,100 +74,10 @@ void SSSVoiceDashboard::Construct(const FArguments& InArgs, const TSharedPtr<SWi
 	];
 }
 
-TSharedRef<SDockTab> SSSVoiceDashboard::SpawnDashboardTab(const FSpawnTabArgs& SpawnTabArgs)
+USSVoiceAutofillStrategy* SSSVoiceDashboard::GetStrategy() const
 {
-	return SNew(SDockTab)
-		.TabRole(ETabRole::PanelTab)
-		[
-			SNew(SSplitter)
-			.PhysicalSplitterHandleSize(3.0f)
-			.Style(FEditorStyle::Get(), "DetailsView.Splitter")
-			+ SSplitter::Slot()
-			.Value(0.25f)
-			[
-				BuildLeftPanel()
-			]
-			+ SSplitter::Slot()
-			.Value(0.75f)
-			[
-				BuildRightPanel()
-			]
-		];
-}
-
-TSharedRef<SWidget> SSSVoiceDashboard::BuildLeftPanel()
-{
-	return SNew(SScrollBox)
-
-			// --- Profile Selector
-			+ SScrollBox::Slot()
-			[
-				SNew(SVerticalBox)
-				+ SVerticalBox::Slot().AutoHeight().Padding(4)
-				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("ProfileSelector", "Profile Selector"))
-					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 14))
-				]
-
-				+ SVerticalBox::Slot().AutoHeight().Padding(4)
-				[
-					SNew(SSSAutofillProfileSelector)
-					.OnProfileChanged(FSimpleDelegate::CreateLambda([this]()
-					{
-						// Callback when profile change
-						UE_LOG(LogTemp, Log, TEXT("[SSVoice] Profile changed from selector widget"));
-
-						// TODO: Rafraîchir le contenu si besoin
-					}))
-				]
-			]
-
-			// --- Culture Filter
-			+ SScrollBox::Slot().Padding(4)
-			[
-				SNew(SVerticalBox)
-				+ SVerticalBox::Slot().AutoHeight()
-				[
-					SNew(STextBlock)
-					.Text(LOCTEXT("CultureFilterTitle", "Culture Filter"))
-					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 14))
-				]
-
-				+ SVerticalBox::Slot().AutoHeight().Padding(4)
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString("→ [CheckBoxes per culture]"))
-				]
-			]
-
-			// --- Cook Settings
-			+ SScrollBox::Slot().Padding(4)
-			[
-				SNew(SExpandableArea)
-				.AreaTitle(LOCTEXT("CookSettings", "Cooking Settings"))
-				.BodyContent()
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString("→ [Cook culture selection]"))
-				]
-			];
-}
-
-TSharedRef<SWidget> SSSVoiceDashboard::BuildRightPanel()
-{
-	return SNew(SVerticalBox)
-
-			// --- Coverage Overview
-			+ SVerticalBox::Slot().AutoHeight().Padding(6)
-			[
-				BuildCoverageSection()
-			]
-
-			+ SVerticalBox::Slot().AutoHeight().Padding(4)
-			[
-				SNew(SSeparator)
-			];
+	auto* VLEditorSubsystem = GEditor->GetEditorSubsystem<USSVoiceLocalizationEditorSubsystem>();
+	return VLEditorSubsystem->GetActiveStrategy();
 }
 
 void SSSVoiceDashboard::RebuildUI()
@@ -170,141 +86,24 @@ void SSSVoiceDashboard::RebuildUI()
 	Invalidate(EInvalidateWidgetReason::Layout | EInvalidateWidgetReason::Paint);
 }
 
-TSharedRef<SWidget> SSSVoiceDashboard::BuildCultureListWidget()
+FText SSSVoiceDashboard::GetLocalizedVoiceText() const
 {
-	TSharedRef<SVerticalBox> List = SNew(SVerticalBox);
-
-	for (const FSSVoiceCultureReportEntry& Entry : CultureReport.Entries)
-	{
-		const float Progress = Entry.GetCoveragePercent();
-
-		List->AddSlot().AutoHeight().Padding(4)
-		[
-			SNew(SHorizontalBox)
-
-			// Culture name
-			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(4)
-			[
-				SNew(STextBlock)
-				.Text(FText::FromString(Entry.Culture))
-				.MinDesiredWidth(60)
-			]
-
-			// Progress bar
-			+ SHorizontalBox::Slot().FillWidth(1.0f).VAlign(VAlign_Center).Padding(4)
-			[
-				SNew(SProgressBar)
-				.Percent(Progress)
-			]
-
-			// Percentage label
-			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(4)
-			[
-				SNew(STextBlock)
-				.Text(FText::Format(
-					LOCTEXT("CoverageSummaryWithPercent", "{0}%  ({1} / {2})"),
-					FText::AsNumber(FMath::RoundToInt(Progress * 100.f)),
-					FText::AsNumber(Entry.AssetsWithCulture),
-					FText::AsNumber(Entry.TotalAssets)
-				))
-				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 10))
-				.ColorAndOpacity(FSlateColor::UseSubduedForeground())
-				.MinDesiredWidth(70)
-			]
-
-			// Autofill button
-			+ SHorizontalBox::Slot().AutoWidth().Padding(4)
-			[
-				SNew(SButton)
-				.Text(LOCTEXT("AutofillCultureBtn", "Auto-fill"))
-				.OnClicked_Lambda([this, Culture = Entry.Culture]()
-				{
-					// TODO : lancer l’autofill ciblé
-					UE_LOG(LogTemp, Log, TEXT("[SSVoice] Requested autofill for culture: %s"), *Culture);
-
-					OpenAutoFillConfirmationDialog(Culture);
-
-					return FReply::Handled();
-				})
-			]
-		];
-	}
-
-	return List;
+	return GetStrategy()->DisplayMatchLocalizedVoicePattern();
 }
 
-TSharedRef<SWidget> SSSVoiceDashboard::BuildCoverageSection()
+FText SSSVoiceDashboard::GetLocalizedVoiceExampleText() const
 {
-	return SNew(SVerticalBox)
+	return GetStrategy()->DisplayMatchLocalizedVoicePatternExample();
+}
 
-		+ SVerticalBox::Slot().AutoHeight().Padding(4)
-		[
-			SNew(SHorizontalBox)
+FText SSSVoiceDashboard::GetMatchCulturePatternText() const
+{
+	return GetStrategy()->DisplayMatchCultureRulePattern();
+}
 
-			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(4)
-			[
-				SNew(STextBlock)
-				.Text(LOCTEXT("CultureCoverageTitle", "Voice Culture Coverage"))
-				.Font(FCoreStyle::GetDefaultFontStyle("Bold", 14))
-			]
-
-			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(4, 0)
-			[
-				SNew(SButton)
-				.Text(LOCTEXT("RegenerateReportBtn", "Generate Report"))
-				.ToolTipText(LOCTEXT("RegenerateReportTooltip",
-				                     "Scan all voice assets and generate the latest culture coverage report."))
-				.OnClicked_Lambda([this]()
-				{
-					// 1. Créer le slow task pour l’utilisateur
-					TSharedPtr<FScopedSlowTask> SlowTask = MakeShared<FScopedSlowTask>(
-						1.f,
-						LOCTEXT("ScanningCultures", "Scanning voice cultures...")
-					);
-					SlowTask->MakeDialog(true);
-
-					// 2. Lancer l'opération async
-					FSSVoiceLocalizationUtils::GenerateCultureCoverageReportAsync(
-						[this, SlowTask](const FSSVoiceCultureReport& Report)
-						{
-							CultureReport = Report;
-
-							// Fermer la tâche + reconstruire UI
-							if (SlowTask.IsValid())
-							{
-								SlowTask->EnterProgressFrame(1.f); // facultatif ici
-							}
-
-							FSSVoiceLocalizationUI::NotifySuccess(
-								NSLOCTEXT("SSVoice", "ScanningCulturesSuccess", "Scanning cultures with success"));
-							
-							RebuildUI();
-						}
-					);
-
-					return FReply::Handled();
-				})
-			]
-		]
-
-		+ SVerticalBox::Slot().AutoHeight().Padding(4)
-		[
-			SNew(SSeparator)
-		]
-
-		+ SVerticalBox::Slot().AutoHeight()
-		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot().AutoHeight().Padding(2)
-			[
-				// Loop on each culture
-				SNew(SVerticalBox)
-				+ SVerticalBox::Slot().AutoHeight()
-				[
-					BuildCultureListWidget()
-				]
-			]
-		];
+FText SSSVoiceDashboard::GetMatchCulturePatternExampleText() const
+{
+	return GetStrategy()->DisplayMatchCultureRulePatternExample();
 }
 
 void SSSVoiceDashboard::OpenAutoFillConfirmationDialog(const FString& Culture)

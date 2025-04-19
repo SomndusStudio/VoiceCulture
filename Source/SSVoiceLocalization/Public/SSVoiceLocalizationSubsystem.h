@@ -29,20 +29,42 @@ public:
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
-	
+
+	/**
+	 * Sets the current voice culture (language) to use for localized voice audio.
+	 * This can be called at runtime to switch voices independently from UI localization.
+	 *
+	 * @param Language The culture/language code to apply (e.g., "en", "fr", "jp").
+	 */
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentVoiceCulture(const FString& Language);
 
+	/**
+	 * Returns the currently active voice culture.
+	 *
+	 * @return The language code currently used for selecting localized voice assets.
+	 */
 	UFUNCTION(BlueprintCallable)
 	FString GetCurrentVoiceCulture() const;
 
 #if WITH_EDITOR
+	/**
+	 * In editor only: returns the preview voice culture defined in the developer settings.
+	 * This is used for voice testing in PIE or the editor environment.
+	 */
 	FString GetEditorPreviewLanguage() const;
 #endif
 	
 private:
+	/** Holds the currently active voice language code. */
 	FString CurrentLanguage = TEXT("en");
 
+	/**
+	 * Internal handler that is called at the start of each GameInstance.
+	 * Resets the voice culture to the default (from developer settings) or preview language if in PIE.
+	 */
 	void HandleStartGameInstance(UGameInstance* GameInstance);
+
+	/** Handle for the delegate binding to GameInstance start events. */
 	FDelegateHandle OnStartGameInstanceHandle;
 };

@@ -1,4 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+* Copyright (C) 2020-2025 Schartier Isaac
+*
+* Official Documentation: https://www.somndus-studio.com
+*/
 
 
 #include "Utils/SSVoiceLocalizationUtils.h"
@@ -90,17 +94,16 @@ bool FSSVoiceLocalizationUtils::AutoPopulateFromNaming(USSLocalizedVoiceSound* T
 void FSSVoiceLocalizationUtils::GenerateCultureCoverageReportAsync(
 	TFunction<void(const FSSVoiceCultureReport&)> OnComplete)
 {
-	Async(EAsyncExecution::ThreadPool, [OnComplete]()
+	AsyncTask(ENamedThreads::GameThread, [OnComplete]()
 	{
 		TMap<FString, int32> TotalAssetsPerCulture;
 		TMap<FString, int32> CultureHitCount;
 
 		// Load asset registry
-		FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(
-			"AssetRegistry");
+		FAssetRegistryModule& AssetRegistryModule = USSVoiceLocalizationEditorSubsystem::GetAssetRegistryModule();
 
 		FARFilter Filter;
-		Filter.ClassNames.Add(USSLocalizedVoiceSound::StaticClass()->GetFName());
+		Filter.ClassPaths.Add(USSLocalizedVoiceSound::StaticClass()->GetClassPathName());
 		Filter.bRecursiveClasses = true;
 		Filter.bRecursivePaths = true;
 		Filter.PackagePaths.Add(FName("/Game"));
@@ -206,10 +209,10 @@ void FSSVoiceLocalizationUtils::AutoFillCultureAsync(
 		const FString NormalizedCulture = TargetCulture.ToLower();
 
 		// Query the asset registry for all localized voice assets
-		FAssetRegistryModule& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+		FAssetRegistryModule& AssetRegistry = USSVoiceLocalizationEditorSubsystem::GetAssetRegistryModule();
 
 		FARFilter Filter;
-		Filter.ClassNames.Add(USSLocalizedVoiceSound::StaticClass()->GetFName());
+		Filter.ClassPaths.Add(USSLocalizedVoiceSound::StaticClass()->GetClassPathName());
 		Filter.bRecursivePaths = true;
 		Filter.PackagePaths.Add(FName("/Game"));
 

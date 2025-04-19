@@ -1,4 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+* Copyright (C) 2020-2025 Schartier Isaac
+*
+* Official Documentation: https://www.somndus-studio.com
+*/
 
 
 #include "Settings/SSVoiceAutofillStrategy.h"
@@ -14,3 +18,23 @@ bool USSVoiceAutofillStrategy::ExecuteOneCultureAutofillInAsset_Implementation(U
 {
 	return false;
 }
+FText USSVoiceAutofillStrategy::DisplayMatchLocalizedVoicePattern_Implementation() const
+{
+	return FText::FromString("Not Specified (You should do it)");
+}
+
+FText USSVoiceAutofillStrategy::DisplayMatchLocalizedVoicePatternExample_Implementation() const
+{
+	return FText::FromString("Not Specified (You should do it)");
+}
+
+FText USSVoiceAutofillStrategy::DisplayMatchCultureRulePattern_Implementation() const
+{
+	return FText::FromString("Not Specified (You should do it)");
+}
+
+FText USSVoiceAutofillStrategy::DisplayMatchCultureRulePatternExample_Implementation() const
+{
+	return FText::FromString("Not Specified (You should do it)");
+}
+

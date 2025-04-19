@@ -1,4 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+* Copyright (C) 2020-2025 Schartier Isaac
+*
+* Official Documentation: https://www.somndus-studio.com
+*/
 
 #pragma once
 
@@ -7,6 +11,7 @@
 #include "SSVoiceLocalizationTypes.h"
 
 
+class SSSAutofillProfileSelector;
 class FSSVoiceFilterCompleteCulture;
 class FSSVoiceFilterMissingCulture;
 class FSSVoiceFilterActorName;
@@ -22,6 +27,8 @@ public:
 protected:
 	/** Last loaded report */
 	FSSVoiceCultureReport CultureReport;
+
+	USSVoiceAutofillStrategy* GetStrategy() const;
 	
 private:
 	static const FName OverviewTabId;
@@ -32,11 +39,25 @@ private:
 	TSharedRef<SDockTab> SpawnDashboardTab(const FSpawnTabArgs& SpawnTabArgs);
 	TSharedRef<SDockTab> SpawnVoiceActorTab(const FSpawnTabArgs& SpawnTabArgs);
 	
+	FText GetLocalizedVoiceText() const;
+	FText GetLocalizedVoiceExampleText() const;
+	FText GetMatchCulturePatternText() const;
+	FText GetMatchCulturePatternExampleText() const;
+	
+	TSharedPtr<SBox> ProfileSectionWidget;
+	TSharedPtr<SSSAutofillProfileSelector> ProfileSelector;
+	TSharedRef<SWidget> BuildProfileSectionWidget();
+	void RefreshProfileSection();
+
+	TSharedPtr<SBox> CoverageSectionWidget;
+	TSharedRef<SWidget> BuildCoverageSection();
+	void RefreshCoverageSection();
+	FReply OnGenerateReportClicked();
+	
 	TSharedRef<SWidget> BuildLeftPanel();
 	TSharedRef<SWidget> BuildRightPanel();
 	
 	TSharedRef<SWidget> BuildCultureListWidget();
-	TSharedRef<SWidget> BuildCoverageSection();
 	
 	////////////////////////////////////////////////////////////////////
 	// Voice actor tab part

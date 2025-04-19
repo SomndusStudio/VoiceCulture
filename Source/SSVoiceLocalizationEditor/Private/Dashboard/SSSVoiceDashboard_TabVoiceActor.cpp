@@ -1,6 +1,11 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+* Copyright (C) 2020-2025 Schartier Isaac
+*
+* Official Documentation: https://www.somndus-studio.com
+*/
 
 
+#include "EditorStyleSet.h"
 #include "IContentBrowserSingleton.h"
 #include "SSVoiceLocalizationEditorSubsystem.h"
 #include "SSVoiceLocalizationFilters.h"
@@ -297,7 +302,7 @@ TSharedRef<SWidget> SSSVoiceDashboard::BuildAssetList()
 			                     "Auto populate all voice assets from content browser"))
 			.OnClicked_Lambda([this]()
 			{
-				FAssetRegistryModule& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+				FAssetRegistryModule& AssetRegistry = USSVoiceLocalizationEditorSubsystem::GetAssetRegistryModule();
 				TArray<FAssetData> FoundAssets;
 				AssetRegistry.Get().GetAssets(Filter, FoundAssets);
 				
@@ -322,22 +327,6 @@ TSharedRef<SWidget> SSSVoiceDashboard::BuildAssetList()
 		[
 			ContentBrowserView
 		];
-	/*
-		+ SVerticalBox::Slot().FillHeight(1.f).Padding(4)
-		[
-			SNew(SScrollBox)
-			.ScrollWhenFocusChanges(EScrollWhenFocusChanges::NoScroll)
-			.AnimateWheelScrolling(true)
-			.AllowOverscroll(EAllowOverscroll::No)
-			+ SScrollBox::Slot()
-			[
-				SAssignNew(VoiceAssetListView, SListView<TSharedPtr<FLocalizedVoiceAssetDisplayData>>)
-				.ListItemsSource(&VoiceAssetCards)
-				.SelectionMode(ESelectionMode::None)
-				.OnGenerateRow(this, &SSSVoiceDashboard::GenerateVoiceSoundAssetRow)
-			]
-		];
-		*/
 }
 
 void SSSVoiceDashboard::RefreshAssetsForSelectedActor()
@@ -363,50 +352,6 @@ void SSSVoiceDashboard::RefreshAssetsForSelectedActor()
 
 	const double ScanTime = FPlatformTime::Seconds() - ScanStartTime;
 	UE_LOG(LogTemp, Display, TEXT("Voice actor sound assets scanned in %.2f seconds."), ScanTime);
-
-	/*
-	const USSVoiceLocalizationSettings* Settings = USSVoiceLocalizationSettings::GetSetting();
-	const TSet<FString> AllCultures = Settings ? Settings->SupportedVoiceCultures : TSet<FString>();
-
-	FAssetRegistryModule& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
-
-	FARFilter Filter;
-	Filter.ClassNames.Add(USSLocalizedVoiceSound::StaticClass()->GetFName());
-	Filter.bRecursivePaths = true;
-	Filter.PackagePaths.Add("/Game");
-
-	TArray<FAssetData> Assets;
-	AssetRegistry.Get().GetAssets(Filter, Assets);
-
-	for (const FAssetData& AssetData : Assets)
-	{
-		const FString Name = AssetData.AssetName.ToString();
-
-		if (!Name.Contains(TargetActor))
-			continue;
-
-		// Culture info via tag
-		TArray<FString> Cultures;
-		const FAssetTagValueRef TagValueRef = AssetData.TagsAndValues.FindTag("VoiceCultures");
-		if (TagValueRef.IsSet())
-		{
-			TagValueRef.GetValue().ParseIntoArray(Cultures, TEXT(","));
-		}
-
-		TSharedPtr<FLocalizedVoiceAssetDisplayData> Entry = MakeShared<FLocalizedVoiceAssetDisplayData>();
-		Entry->AssetPath = AssetData.ObjectPath.ToString(); // ← on garde le chemin, on chargera plus tard si besoin
-		Entry->AssetName = Name;
-		Entry->AvailableCultures = Cultures;
-		Entry->TotalCultures = AllCultures.Num();
-
-		VoiceAssetCards.Add(Entry);
-	}
-
-	if (VoiceAssetListView.IsValid())
-	{
-		VoiceAssetListView->RequestListRefresh();
-	}
-	*/
 }
 
 #undef LOCTEXT_NAMESPACE

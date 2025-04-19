@@ -1,4 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+* Copyright (C) 2020-2025 Schartier Isaac
+*
+* Official Documentation: https://www.somndus-studio.com
+*/
 
 #pragma once
 
@@ -33,6 +37,12 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Strategy")
 	bool bRecursiveClasses = true;
+
+	virtual FText DisplayMatchLocalizedVoicePattern_Implementation() const override;
+	virtual FText DisplayMatchLocalizedVoicePatternExample_Implementation() const override;
+	
+	virtual FText DisplayMatchCultureRulePattern_Implementation() const override;
+	virtual FText DisplayMatchCultureRulePatternExample_Implementation() const override;
 	
 	virtual bool ExecuteAutofill_Implementation(const FString& InBaseName, TMap<FString, USoundBase*>& OutCultureToSound) const override;
 	virtual bool ExecuteOneCultureAutofillInAsset_Implementation(USSLocalizedVoiceSound* TargetAsset, const FString& CultureCode, bool bOverrideExisting, FSSLocalizedAudioEntry& OutNewEntry) override;

@@ -1,11 +1,36 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/**
+* Copyright (C) 2020-2025 Schartier Isaac
+*
+* Official Documentation: https://www.somndus-studio.com
+*/
 
 
 #include "Settings/SSVoiceAutofillStrategy_Default.h"
 
 #include "SSLocalizedVoiceSound.h"
+#include "SSVoiceLocalizationEditorSubsystem.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Sound/SoundBase.h"
+
+FText USSVoiceAutofillStrategy_Default::DisplayMatchLocalizedVoicePattern_Implementation() const
+{
+	return FText::FromString("LVA_{ActorName}_{Suffix}");
+}
+
+FText USSVoiceAutofillStrategy_Default::DisplayMatchLocalizedVoicePatternExample_Implementation() const
+{
+	return FText::FromString("LVA_NPC001_MarketScene01_L01");
+}
+
+FText USSVoiceAutofillStrategy_Default::DisplayMatchCultureRulePattern_Implementation() const
+{
+	return FText::FromString("{AssetType}_{Culture}_{ActorName}_{Suffix}");
+}
+
+FText USSVoiceAutofillStrategy_Default::DisplayMatchCultureRulePatternExample_Implementation() const
+{
+	return FText::FromString("A_EN_NPC001_MarketScene01_L01");
+}
 
 bool USSVoiceAutofillStrategy_Default::ExecuteAutofill_Implementation(const FString& InBaseName,
                                                                       TMap<FString, USoundBase*>& OutCultureToSound) const
@@ -30,11 +55,11 @@ bool USSVoiceAutofillStrategy_Default::ExecuteAutofill_Implementation(const FStr
 	}
 
 	// Step 2: Get all SoundBase assets
-	FAssetRegistryModule& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	FAssetRegistryModule& AssetRegistry = USSVoiceLocalizationEditorSubsystem::GetAssetRegistryModule();
 	AssetRegistry.Get().SearchAllAssets(true);
 
 	FARFilter Filter;
-	Filter.ClassNames.Add(USoundBase::StaticClass()->GetFName());
+	Filter.ClassPaths.Add(USoundBase::StaticClass()->GetClassPathName());
 	Filter.bRecursiveClasses = bRecursivePaths;
 	Filter.bRecursivePaths = bRecursivePaths;
 	Filter.PackagePaths.Add(FName("/Game"));
@@ -123,10 +148,10 @@ bool USSVoiceAutofillStrategy_Default::ExecuteOneCultureAutofillInAsset_Implemen
 	// Ex: culture = fr → on cherche A_fr_NPC01_Hello, KQ_fr_NPC01_Hello, etc.
 	const FString TargetSuffix = CultureCode.ToLower() + TEXT("_") + Suffix;
 
-	FAssetRegistryModule& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>("AssetRegistry");
+	FAssetRegistryModule& AssetRegistry = USSVoiceLocalizationEditorSubsystem::GetAssetRegistryModule();
 
 	FARFilter Filter;
-	Filter.ClassNames.Add(USoundBase::StaticClass()->GetFName());
+	Filter.ClassPaths.Add(USoundBase::StaticClass()->GetClassPathName());
 	Filter.bRecursiveClasses = true;
 	Filter.bRecursivePaths = true;
 	Filter.PackagePaths.Add("/Game");

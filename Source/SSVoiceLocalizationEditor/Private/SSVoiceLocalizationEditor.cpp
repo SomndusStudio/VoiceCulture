@@ -6,7 +6,9 @@
 #include "IAssetTypeActions.h"
 #include "ISettingsModule.h"
 #include "LevelEditor.h"
+#include "SSVoiceLocalizationSettings.h"
 #include "SSVoiceLocalizationStyle.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "Dashboard/SSSVoiceDashboard.h"
 #include "Settings/SSVoiceLocalizationEditorSettings.h"
 
