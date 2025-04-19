@@ -16,11 +16,13 @@
 #include "Misc/ScopedSlowTask.h"
 #include "Settings/SSVoiceAutofillStrategy.h"
 #include "Settings/SSVoiceLocalizationEditorSettings.h"
-#include "Sound/SoundCue.h"
 #include "Utils/SSVoiceLocalizationUI.h"
 
-bool FSSVoiceLocalizationUtils::AutoPopulateFromNaming(USSLocalizedVoiceSound* TargetAsset)
+#define LOCTEXT_NAMESPACE "SSLocalizedVoiceSoundEditor"
+
+bool FSSVoiceLocalizationUtils::AutoPopulateFromNaming(USSLocalizedVoiceSound* TargetAsset, const bool bShowSlowTask, const bool bShowNotify)
 {
+	// Ensure the target asset is valid
 	if (!TargetAsset)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AutoPopulateFromNaming: Invalid asset"));
@@ -29,7 +31,7 @@ bool FSSVoiceLocalizationUtils::AutoPopulateFromNaming(USSLocalizedVoiceSound* T
 
 	const FString AssetName = TargetAsset->GetName(); // e.g. "LVA_NPC01_Hello"
 
-	// Retrieve autofill settings
+	// Retrieve the editor subsystem and current localization strategy
 	auto* VLEditorSubsystem = GEditor->GetEditorSubsystem<USSVoiceLocalizationEditorSubsystem>();
 	auto* Strategy = VLEditorSubsystem->GetActiveStrategy();
 
@@ -39,28 +41,42 @@ bool FSSVoiceLocalizationUtils::AutoPopulateFromNaming(USSLocalizedVoiceSound* T
 		return false;
 	}
 
-	// Show UI progress
-	FScopedSlowTask SlowTask(1.f, NSLOCTEXT("SSVoice", "AutoFillRunning", "Auto-filling localized voice entries..."));
-	SlowTask.MakeDialog(true);
-	SlowTask.EnterProgressFrame(0.5f, NSLOCTEXT("SSVoice", "AutoFillScanning", "Scanning assets..."));
+	// Optional: Setup progress dialog
+	TUniquePtr<FScopedSlowTask> SlowTask;
+	if (bShowSlowTask)
+	{
+		SlowTask = MakeUnique<FScopedSlowTask>(
+			1.f,
+			NSLOCTEXT("SSVoice", "AutoFillRunning", "Auto-filling localized voice entries...")
+		);
+		SlowTask->MakeDialog(true);
+		SlowTask->EnterProgressFrame(0.5f, NSLOCTEXT("SSVoice", "AutoFillScanning", "Scanning assets..."));
+	}
 
+	// Try to auto-detect localized sound assets using the selected strategy
 	TMap<FString, USoundBase*> LocalizedSounds;
 	if (!Strategy->ExecuteAutofill(AssetName, LocalizedSounds))
 	{
-		FSSVoiceLocalizationUI::NotifyFailure(NSLOCTEXT("SSVoice", "AutoFillFailure", "No matching assets found."));
+		if (bShowNotify)
+		{
+			FSSVoiceLocalizationUI::NotifyFailure(NSLOCTEXT("SSVoice", "AutoFillFailure", "No matching assets found."));
+		}
 		return false;
 	}
 
-	SlowTask.EnterProgressFrame(0.5f, NSLOCTEXT("SSVoice", "AutoFillApplying", "Updating entries..."));
+	if (SlowTask)
+	{
+		SlowTask->EnterProgressFrame(0.5f, NSLOCTEXT("SSVoice", "AutoFillApplying", "Updating entries..."));
+	}
 
-	// Got existing entries
+	// Keep track of already existing cultures to avoid duplicates
 	TSet<FString> ExistingCultures;
 	for (const FSSLocalizedAudioEntry& Entry : TargetAsset->LocalizedAudioEntries)
 	{
 		ExistingCultures.Add(Entry.Culture.ToLower());
 	}
 
-	// Fill the array
+	// Append only new localized entries that do not already exist
 	for (const auto& Pair : LocalizedSounds)
 	{
 		const FString NormalizedCulture = Pair.Key.ToLower();
@@ -77,18 +93,136 @@ bool FSSVoiceLocalizationUtils::AutoPopulateFromNaming(USSLocalizedVoiceSound* T
 		TargetAsset->LocalizedAudioEntries.Add(Entry);
 	}
 
+	// If no new entries were added, notify and return
 	if (LocalizedSounds.Num() == 0)
 	{
-		FSSVoiceLocalizationUI::NotifyFailure(NSLOCTEXT("SSVoice", "AutoFillNoNew",
-		                                                "No new localized entries were added."));
+		if (bShowNotify)
+		{
+			FSSVoiceLocalizationUI::NotifyFailure(NSLOCTEXT("SSVoice", "AutoFillNoNew",
+													"No new localized entries were added."));
+		}
 		return false;
 	}
 
+	// Mark the package as dirty to indicate it needs saving
 	TargetAsset->MarkPackageDirty();
 
-	FSSVoiceLocalizationUI::NotifySuccess(NSLOCTEXT("SSVoice", "AutoFillSuccess", "Auto-fill completed."));
+	// Optionally auto-save the asset if the setting is enabled
+	auto* EditorSettings = USSVoiceLocalizationEditorSettings::GetMutableSetting();
+	if (EditorSettings->bAutoSaveAfterAutofill)
+	{
+		FString PackageFilename;
+		if (FPackageName::TryConvertLongPackageNameToFilename(
+			TargetAsset->GetOutermost()->GetName(), PackageFilename, FPackageName::GetAssetPackageExtension()))
+		{
+			UPackage::SavePackage(
+				TargetAsset->GetOutermost(),
+				nullptr,
+				EObjectFlags::RF_Standalone,
+				*PackageFilename,
+				GError,
+				nullptr,
+				true, // bSaveToDisk
+				true, // bForceByteSwapping
+				SAVE_NoError
+			);
+		}
+	}
+
+	// Final user feedback and log
+	if (bShowNotify)
+	{
+		FSSVoiceLocalizationUI::NotifySuccess(NSLOCTEXT("SSVoice", "AutoFillSuccess", "Auto-fill completed."));
+	}
 	UE_LOG(LogTemp, Log, TEXT("[SSVoice] Auto-fill added %d entries into '%s'"), LocalizedSounds.Num(), *AssetName);
 	return true;
+}
+
+bool FSSVoiceLocalizationUtils::AutoPopulateFromVoiceActor(const FString& VoiceActorName, bool bOnlyMissingCulture)
+{
+	// Declare a progress bar for the full process
+	const FText TaskTitle = FText::FromString(TEXT("Populating localized voice assets..."));
+	FScopedSlowTask SlowTask(4.f, TaskTitle); // We'll add sub-steps as we go
+	SlowTask.MakeDialog(true); // Show UI with cancel button
+
+	// Step 1: Retrieve all localized voice sound assets
+	SlowTask.EnterProgressFrame(1.f, FText::FromString(TEXT("Gathering all localized voice assets...")));
+
+	TArray<FAssetData> Assets = USSVoiceLocalizationEditorSubsystem::GetAllLocalizeVoiceSoundAssets();
+
+	// Check for user cancel
+	if (SlowTask.ShouldCancel())
+	{
+		return false;
+	}
+
+	// Step 2: Filter by specific voice actor
+	SlowTask.EnterProgressFrame(1.f, FText::Format(
+		                            LOCTEXT("FilterByVoiceActor", "Filtering assets by voice actor: {0}"),
+		                            FText::FromString(VoiceActorName)
+	                            ));
+	USSVoiceLocalizationEditorSubsystem::GetAssetsFromVoiceActor(Assets, VoiceActorName, false);
+
+	if (SlowTask.ShouldCancel())
+	{
+		return false;
+	}
+
+	// Step 3: Optionally filter only the ones that are missing a culture (e.g., not yet localized)
+	if (bOnlyMissingCulture)
+	{
+		SlowTask.EnterProgressFrame(1.f, FText::FromString(TEXT("Filtering assets with missing culture...")));
+		USSVoiceLocalizationEditorSubsystem::GetAssetsWithCulture(Assets, false);
+
+		if (SlowTask.ShouldCancel())
+		{
+			return false;
+		}
+	}
+
+	// Still consume the progress frame even if no filtering
+	SlowTask.EnterProgressFrame(1.f);
+
+	bool bOneSuccessAtLeast = false;
+
+	// Add sub-steps to track per asset
+	SlowTask.TotalAmountOfWork += Assets.Num(); // Add dynamic steps
+
+	for (auto& Asset : Assets)
+	{
+		// Check for user cancellation
+		if (SlowTask.ShouldCancel())
+		{
+			break;
+		}
+
+		// Advance the progress bar
+		SlowTask.EnterProgressFrame(1.f, FText::FromName(Asset.AssetName));
+
+		// Load the asset and cast to the expected class
+		USSLocalizedVoiceSound* VoiceSound = Cast<USSLocalizedVoiceSound>(Asset.GetAsset());
+		if (!VoiceSound)
+		{
+			continue;
+		}
+		// Attempt to auto-populate data from the asset's naming convention
+		if (AutoPopulateFromNaming(VoiceSound, false, false))
+		{
+			bOneSuccessAtLeast = true;
+		}
+	}
+
+	// Notify
+	if (bOneSuccessAtLeast)
+	{
+		FSSVoiceLocalizationUI::NotifySuccess(NSLOCTEXT("SSVoice", "AutoFillSuccess", "Auto-fill completed."));
+	}
+	else
+	{
+		FSSVoiceLocalizationUI::NotifyFailure(NSLOCTEXT("SSVoice", "AutoFillNoMatch_Assets", "No asset contains at least one autofill match."));
+	}
+	// Return whether at least one asset was successfully populated
+	return bOneSuccessAtLeast;
 }
 
 void FSSVoiceLocalizationUtils::GenerateCultureCoverageReportAsync(
@@ -207,10 +341,10 @@ void FSSVoiceLocalizationUtils::AutoFillCultureAsync(
 	AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, [TargetCulture, bOverrideExisting, SlowTask, OnCompleted]()
 	{
 		const FString NormalizedCulture = TargetCulture.ToLower();
-		
+
 		// 1. Retrieve assets
 		TArray<FAssetData> AssetList = USSVoiceLocalizationEditorSubsystem::GetAllLocalizeVoiceSoundAssets();
-		
+
 		// Filter down to only the assets that need autofill
 		TArray<FAssetData> AssetsToProcess;
 		for (const FAssetData& AssetData : AssetList)
@@ -298,8 +432,9 @@ void FSSVoiceLocalizationUtils::AutoFillCultureAsync(
 								          Entry.Sound = NewEntry.Sound;
 								          ModifiedAssets++;
 								          Asset->MarkPackageDirty();
-								          if (EditorSettings->bAutoSaveAfterAutofill) ModifiedPackages.Add(
-									          Asset->GetOutermost());
+								          if (EditorSettings->bAutoSaveAfterAutofill)
+									          ModifiedPackages.Add(
+										          Asset->GetOutermost());
 							          }
 
 							          break;
@@ -312,8 +447,9 @@ void FSSVoiceLocalizationUtils::AutoFillCultureAsync(
 						          Asset->LocalizedAudioEntries.Add(NewEntry);
 						          ModifiedAssets++;
 						          Asset->MarkPackageDirty();
-						          if (EditorSettings->bAutoSaveAfterAutofill) ModifiedPackages.Add(
-							          Asset->GetOutermost());
+						          if (EditorSettings->bAutoSaveAfterAutofill)
+							          ModifiedPackages.Add(
+								          Asset->GetOutermost());
 					          }
 				          }
 			          }
@@ -369,3 +505,5 @@ void FSSVoiceLocalizationUtils::AutoFillCultureAsync(
 		          });
 	});
 }
+
+#undef LOCTEXT_NAMESPACE

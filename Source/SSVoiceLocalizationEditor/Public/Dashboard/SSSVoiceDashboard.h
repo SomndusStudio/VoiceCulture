@@ -8,6 +8,7 @@
 
 #include "CoreMinimal.h"
 #include "ContentBrowserDelegates.h"
+#include "IContentBrowserSingleton.h"
 #include "SSVoiceLocalizationTypes.h"
 
 
@@ -58,6 +59,8 @@ private:
 	TSharedRef<SWidget> BuildRightPanel();
 	
 	TSharedRef<SWidget> BuildCultureListWidget();
+
+	FReply OnClick_AutoFillMissingCulture();
 	
 	////////////////////////////////////////////////////////////////////
 	// Voice actor tab part
@@ -74,8 +77,6 @@ private:
 	FRefreshAssetViewDelegate DelegateRefreshView;
 	FGetCurrentSelectionDelegate DelegateSelection;
 	
-	TArray<FAssetData> AssetsVoiceActor;
-	
 	TSharedPtr<FSSVoiceFilterActorName> FilterActorName;
 	TSharedPtr<FSSVoiceFilterMissingCulture> FilterMissingCulture;
 	TSharedPtr<FSSVoiceFilterCompleteCulture> FilterCompleteCulture;
@@ -87,7 +88,9 @@ private:
 	
 	TSharedRef<ITableRow> GenerateVoiceSoundAssetRow(TSharedPtr<FLocalizedVoiceAssetDisplayData> InItem, const TSharedRef<STableViewBase>& OwnerTable);
 
-	void ResetVoiceAssetsCache();
+	FAssetPickerConfig AssetPickerConfig;
+	TArray<FAssetData> GetFilteredAssets();
+	
 	void UpdateContentBrowser();
 	void LoadActorListFromJson();
 	

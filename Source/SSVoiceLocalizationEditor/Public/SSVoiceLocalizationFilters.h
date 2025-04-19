@@ -29,6 +29,7 @@ public:
 	FSSDelegateFilterChanged& OnFilterChanged();
 
 	TSet<FAssetData> GetAssets();
+	FString GetVoiceActorName() { return VoiceActorName; }
 private:
 
 	FString VoiceActorName;

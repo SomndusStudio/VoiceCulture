@@ -225,29 +225,21 @@ TSharedRef<ITableRow> SSSVoiceDashboard::GenerateVoiceSoundAssetRow(TSharedPtr<F
 		];
 }
 
-void SSSVoiceDashboard::ResetVoiceAssetsCache()
-{
-	AssetsVoiceActor.Reset();
-}
-
 void SSSVoiceDashboard::UpdateContentBrowser()
 {
-	Filter.Clear();
-
-	// Filter from Voice actor name
-	Filter.ObjectPaths.Reserve(Filter.ObjectPaths.Num() + AssetsVoiceActor.Num());
-
-	for (const auto& Asset : AssetsVoiceActor)
-	{
-		Filter.ObjectPaths.Emplace(Asset.ToSoftObjectPath().GetAssetPathName());
-	}
-
 	DelegateFilter.Execute(Filter);
+}
+
+
+FReply SSSVoiceDashboard::OnClick_AutoFillMissingCulture()
+{
+	FSSVoiceLocalizationUtils::AutoPopulateFromVoiceActor(FilterActorName->GetVoiceActorName());
+	
+	return FReply::Handled();
 }
 
 TSharedRef<SWidget> SSSVoiceDashboard::BuildAssetList()
 {
-	FAssetPickerConfig AssetPickerConfig;
 	AssetPickerConfig.bAddFilterUI = true;
 	AssetPickerConfig.bCanShowFolders = false;
 	AssetPickerConfig.bAllowDragging = false;
@@ -258,7 +250,7 @@ TSharedRef<SWidget> SSSVoiceDashboard::BuildAssetList()
 	AssetPickerConfig.bForceShowPluginContent = false;
 	AssetPickerConfig.bCanShowClasses = false;
 	AssetPickerConfig.bCanShowRealTimeThumbnails = false;
-
+	
 	AssetPickerConfig.Filter = Filter;
 	AssetPickerConfig.bAllowNullSelection = true;
 	AssetPickerConfig.GetCurrentSelectionDelegates.Add(&DelegateSelection);
@@ -297,27 +289,10 @@ TSharedRef<SWidget> SSSVoiceDashboard::BuildAssetList()
 		+ SVerticalBox::Slot().AutoHeight().Padding(5.0f)
 		[
 			SNew(SButton)
-			.Text(LOCTEXT("RegenerateReportBtn", "Auto Fill Browser Asset"))
+			.Text(LOCTEXT("RegenerateReportBtn", "Auto Fill Missing Culture"))
 			.ToolTipText(LOCTEXT("AutoFillAssetsInBrowserTooltip",
 			                     "Auto populate all voice assets from content browser"))
-			.OnClicked_Lambda([this]()
-			{
-				FAssetRegistryModule& AssetRegistry = USSVoiceLocalizationEditorSubsystem::GetAssetRegistryModule();
-				TArray<FAssetData> FoundAssets;
-				AssetRegistry.Get().GetAssets(Filter, FoundAssets);
-				
-				// Auto fill every assets from content browser
-				for (const auto& VoiceActorAsset : AssetsVoiceActor)
-				{
-					USSLocalizedVoiceSound* VoiceSound = Cast<USSLocalizedVoiceSound>(VoiceActorAsset.GetAsset());
-					if (!VoiceSound)
-					{
-						continue;
-					}
-					FSSVoiceLocalizationUtils::AutoPopulateFromNaming(VoiceSound);
-				}
-				return FReply::Handled();
-			})
+			.OnClicked(this, &SSSVoiceDashboard::OnClick_AutoFillMissingCulture)
 		]
 		+ SVerticalBox::Slot().AutoHeight().Padding(3.0f)
 		[
@@ -338,8 +313,6 @@ void SSSVoiceDashboard::RefreshAssetsForSelectedActor()
 
 	// --
 	const double ScanStartTime = FPlatformTime::Seconds();
-
-	ResetVoiceAssetsCache();
 
 	// Execute filter retrieve assets
 	FilterActorName->SetVoiceActorName(TargetActor);
