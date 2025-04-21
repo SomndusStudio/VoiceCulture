@@ -60,8 +60,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Strategy")
 	bool bRecursiveClasses = true;
 
-	virtual FText DisplayMatchLocalizedVoicePattern_Implementation() const override;
-	virtual FText DisplayMatchLocalizedVoicePatternExample_Implementation() const override;
+	virtual FText DisplayMatchVoiceCulturePattern_Implementation() const override;
+	virtual FText DisplayMatcVoiceCulturePatternExample_Implementation() const override;
 
 	virtual FText DisplayMatchCultureRulePattern_Implementation() const override;
 	virtual FText DisplayMatchCultureRulePatternExample_Implementation() const override;

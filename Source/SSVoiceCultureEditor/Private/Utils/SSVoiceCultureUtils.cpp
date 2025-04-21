@@ -83,7 +83,7 @@ bool FSSVoiceCultureUtils::AutoPopulateFromNaming(USSVoiceCultureSound* TargetAs
 	{
 		SlowTask = MakeUnique<FScopedSlowTask>(
 			1.f,
-			NSLOCTEXT("SSVoiceCultureEditor", "AutoPopulateRunning", "Auto-populate localized voice entries...")
+			NSLOCTEXT("SSVoiceCultureEditor", "AutoPopulateRunning", "Auto-populate voice culture entries...")
 		);
 		SlowTask->MakeDialog(true);
 		SlowTask->EnterProgressFrame(0.5f, NSLOCTEXT("SSVoiceCultureEditor", "AutoPopulateScanning", "Scanning assets..."));
@@ -154,7 +154,7 @@ bool FSSVoiceCultureUtils::AutoPopulateFromNaming(USSVoiceCultureSound* TargetAs
 		if (bShowNotify)
 		{
 			FSSVoiceCultureUI::NotifyFailure(NSLOCTEXT("SSVoiceCultureEditor", "AutoPopulateNoNew",
-			                                           "No new localized entries were added."));
+			                                           "No new culture entries were added."));
 		}
 		return false;
 	}
@@ -187,12 +187,12 @@ bool FSSVoiceCultureUtils::AutoPopulateFromNaming(USSVoiceCultureSound* TargetAs
 bool FSSVoiceCultureUtils::AutoPopulateFromVoiceActor(const FString& VoiceActorName, bool bOnlyMissingCulture)
 {
 	// Declare a progress bar for the full process
-	const FText TaskTitle = FText::FromString(TEXT("Populating localized voice assets..."));
+	const FText TaskTitle = FText::FromString(TEXT("Populating voice culture assets..."));
 	FScopedSlowTask SlowTask(4.f, TaskTitle); // We'll add sub-steps as we go
 	SlowTask.MakeDialog(true); // Show UI with cancel button
 
-	// Step 1: Retrieve all localized voice sound assets
-	SlowTask.EnterProgressFrame(1.f, FText::FromString(TEXT("Gathering all localized voice assets...")));
+	// Step 1: Retrieve all voice culture sound assets
+	SlowTask.EnterProgressFrame(1.f, FText::FromString(TEXT("Gathering all voice culture assets...")));
 
 	TArray<FAssetData> Assets;
 

@@ -20,7 +20,7 @@ const FName FSSVoiceCultureSoundEditorToolkit::GraphTabID(TEXT("SSVoiceCultureSo
 
 void FSSVoiceCultureSoundEditorCommands::RegisterCommands()
 {
-	UI_COMMAND(Play, "Play", "Play the localized voice", EUserInterfaceActionType::Button, FInputChord());
+	UI_COMMAND(Play, "Play", "Play the voice culture", EUserInterfaceActionType::Button, FInputChord());
 	UI_COMMAND(Stop, "Stop", "Stop playback", EUserInterfaceActionType::Button, FInputChord());
 	UI_COMMAND(AutoPopulate, "AutoPopulate", "Automatically populate voice culture entries based on naming convention",
 	           EUserInterfaceActionType::Button, FInputChord());
@@ -77,7 +77,7 @@ FName FSSVoiceCultureSoundEditorToolkit::GetToolkitFName() const
 
 FText FSSVoiceCultureSoundEditorToolkit::GetBaseToolkitName() const
 {
-	return NSLOCTEXT("SSVoiceCultureEditor", "VoiceCultureSoundEditor", "Localized Voice Audio");
+	return NSLOCTEXT("SSVoiceCultureEditor", "VoiceCultureSoundEditor", "Voice Culture Audio");
 }
 
 FString FSSVoiceCultureSoundEditorToolkit::GetWorldCentricTabPrefix() const

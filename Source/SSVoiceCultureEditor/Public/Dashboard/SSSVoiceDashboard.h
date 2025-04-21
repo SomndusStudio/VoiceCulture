@@ -36,7 +36,7 @@ protected:
 	// ------------------------
 
 	/** Display data for the voice asset list (right panel) */
-	struct FLocalizedVoiceAssetDisplayData
+	struct FVoiceCultureAssetDisplayData
 	{
 		FString AssetName;
 		FString AssetPath;
@@ -92,7 +92,7 @@ protected:
 	TSharedRef<SWidget> BuildActorList();
 	TSharedRef<SWidget> BuildAssetList();
 	TSharedRef<ITableRow> GenerateActorRow(TSharedPtr<FString> InItem, const TSharedRef<STableViewBase>& OwnerTable);
-	TSharedRef<ITableRow> GenerateVoiceSoundAssetRow(TSharedPtr<FLocalizedVoiceAssetDisplayData> InItem, const TSharedRef<STableViewBase>& OwnerTable);
+	TSharedRef<ITableRow> GenerateVoiceSoundAssetRow(TSharedPtr<FVoiceCultureAssetDisplayData> InItem, const TSharedRef<STableViewBase>& OwnerTable);
 
 	TArray<TSharedPtr<FString>> AllActorItems;
 	TArray<TSharedPtr<FString>> FilteredActorItems;
@@ -170,8 +170,8 @@ protected:
 	// Localized Info (Bottom UI)
 	// ------------------------
 
-	FText GetLocalizedVoiceText() const;
-	FText GetLocalizedVoiceExampleText() const;
+	FText GetVoiceCultureText() const;
+	FText GetVoiceCultureExampleText() const;
 	FText GetMatchCulturePatternText() const;
 	FText GetMatchCulturePatternExampleText() const;
 };

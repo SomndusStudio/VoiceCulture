@@ -135,13 +135,13 @@ TSharedRef<SWidget> SSSVoiceDashboard::BuildProfileSectionWidget()
 					TPair<FText, TAttribute<FText>>(
 						NSLOCTEXT("SSVoiceCultureEditor", "Pattern", "Pattern:"),
 						TAttribute<FText>::Create(
-							TAttribute<FText>::FGetter::CreateSP(this, &SSSVoiceDashboard::GetLocalizedVoiceText))
+							TAttribute<FText>::FGetter::CreateSP(this, &SSSVoiceDashboard::GetVoiceCultureText))
 					),
 					TPair<FText, TAttribute<FText>>(
 						NSLOCTEXT("SSVoiceCultureEditor", "PatternExample", "Pattern (Example):"),
 						TAttribute<FText>::Create(
 							TAttribute<FText>::FGetter::CreateSP(
-								this, &SSSVoiceDashboard::GetLocalizedVoiceExampleText))
+								this, &SSSVoiceDashboard::GetVoiceCultureExampleText))
 					)
 				}
 			)

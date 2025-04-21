@@ -91,7 +91,7 @@ void FSSVoiceCultureEditorModule::StartupModule()
 			"Plugins", 
 			"Voice Editor Settings",
 			NSLOCTEXT("SSVoiceCultureEditor", "VoiceEditorSettingsName", "Voice Editor Settings"),
-			NSLOCTEXT("SSVoiceCultureEditor", "VoiceEditorSettingsDescription", "Configure voice editor settings for localized audio."),
+			NSLOCTEXT("SSVoiceCultureEditor", "VoiceEditorSettingsDescription", "Configure voice editor settings for audio culture."),
 			GetMutableDefault<USSVoiceCultureEditorSettings>()
 		);
 	}

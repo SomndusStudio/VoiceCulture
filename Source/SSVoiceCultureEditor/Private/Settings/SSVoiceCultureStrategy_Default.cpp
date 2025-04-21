@@ -68,12 +68,12 @@ bool USSVoiceCultureStrategy_Default::ParseAssetName(const FString& AssetName, F
 	return true;
 }
 
-FText USSVoiceCultureStrategy_Default::DisplayMatchLocalizedVoicePattern_Implementation() const
+FText USSVoiceCultureStrategy_Default::DisplayMatchVoiceCulturePattern_Implementation() const
 {
 	return FText::FromString("LVA_{ActorName}_{Suffix}");
 }
 
-FText USSVoiceCultureStrategy_Default::DisplayMatchLocalizedVoicePatternExample_Implementation() const
+FText USSVoiceCultureStrategy_Default::DisplayMatcVoiceCulturePatternExample_Implementation() const
 {
 	return FText::FromString("LVA_NPC001_MarketScene01_L01");
 }

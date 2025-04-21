@@ -156,10 +156,10 @@ TSharedRef<ITableRow> SSSVoiceDashboard::GenerateActorRow(TSharedPtr<FString> In
 ////////////////////////////////////////////////////////////////////
 // Asset List
 
-TSharedRef<ITableRow> SSSVoiceDashboard::GenerateVoiceSoundAssetRow(TSharedPtr<FLocalizedVoiceAssetDisplayData> InItem,
+TSharedRef<ITableRow> SSSVoiceDashboard::GenerateVoiceSoundAssetRow(TSharedPtr<FVoiceCultureAssetDisplayData> InItem,
                                                                     const TSharedRef<STableViewBase>& OwnerTable)
 {
-	return SNew(STableRow<TSharedPtr<FLocalizedVoiceAssetDisplayData>>, OwnerTable)
+	return SNew(STableRow<TSharedPtr<FVoiceCultureAssetDisplayData>>, OwnerTable)
 		[
 			// Drop shadow border
 			SNew(SBorder)

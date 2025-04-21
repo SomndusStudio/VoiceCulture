@@ -16,7 +16,7 @@ class USSVoiceCultureSound;
 /**
  * Abstract base class for voice strategies.
  *
- * This class defines the interface for how localized voice audio assets are discovered and matched
+ * This class defines the interface for how voice culture audio assets are discovered and matched
  * to entries in a USSVoiceCultureSound asset. Strategies may vary based on naming conventions,
  * folder structures, metadata, etc.
  *
@@ -53,18 +53,18 @@ protected:
 
 public:
 	/**
-	 * Returns a short description of the pattern used by this strategy to match localized voices.
+	 * Returns a short description of the pattern used by this strategy to match voice cultures.
 	 * This is used for UI feedback in dashboards or tooltips.
 	 */
 	UFUNCTION(BlueprintNativeEvent)
-	FText DisplayMatchLocalizedVoicePattern() const;
+	FText DisplayMatchVoiceCulturePattern() const;
 
 	/**
-	 * Returns an example of how the localized voice match pattern looks for this strategy.
+	 * Returns an example of how the voice culture match pattern looks for this strategy.
 	 * Used to help users understand the expected format (e.g., "MyLine_en", "VO_001_fr").
 	 */
 	UFUNCTION(BlueprintNativeEvent)
-	FText DisplayMatchLocalizedVoicePatternExample() const;
+	FText DisplayMatcVoiceCulturePatternExample() const;
 
 	/**
 	 * Returns a description of how this strategy recognizes culture codes from file/folder structure or asset naming.
@@ -79,7 +79,7 @@ public:
 	FText DisplayMatchCultureRulePatternExample() const;
 
 	/**
-	 * Finds a localized voice asset matching the given culture and suffix.
+	 * Finds a voice culture asset matching the given culture and suffix.
 	 * Uses the current strategy's naming convention to locate the asset.
 	 *
 	 * @param CultureCode   The culture code to match (e.g. "en", "fr").
@@ -90,11 +90,11 @@ public:
 
 	/**
 	 * Executes the logic on a given base name, typically the name of a USSVoiceCultureSound asset.
-	 * This function tries to locate all possible localized voice files that match the strategy rules.
+	 * This function tries to locate all possible voice culture files that match the strategy rules.
 	 *
 	 * @param InBaseName The base name of the asset to match against (e.g. "MyLine").
 	 * @param OutCultureToSound Output map of culture codes (e.g. "fr", "en") to matched USoundBase assets.
-	 * @return true if at least one localized voice asset was matched.
+	 * @return true if at least one voice culture asset was matched.
 	 */
 	UFUNCTION(BlueprintNativeEvent)
 	bool ExecuteAutoPopulate(const FString& InBaseName, TMap<FString, USoundBase*>& OutCultureToSound) const;

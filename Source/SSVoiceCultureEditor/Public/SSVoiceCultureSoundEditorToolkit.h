@@ -16,7 +16,7 @@ class USSVoiceCultureSound;
  * Defines editor commands for the SSVoiceCultureSound editor.
  * 
  * This includes toolbar actions like Play and Stop, as well as any custom hotkeys or menu entries
- * specific to the localized voice audio editor.
+ * specific to the voice culture audio editor.
  * 
  * The commands are registered with the editor framework and used to populate toolbars and menus.
  */
@@ -47,7 +47,7 @@ public:
 /**
  * Custom asset editor toolkit for SSVoiceCultureSound.
  *
- * This class handles the editor UI and logic for localized voice audios:
+ * This class handles the editor UI and logic for voice culture audios:
  * - Manages layout and tab registration
  * - Hosts the Details panel for property editing
  * - Provides toolbar integration (Play, Stop, etc.)

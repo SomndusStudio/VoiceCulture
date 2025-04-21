@@ -108,14 +108,14 @@ USSVoiceCultureStrategy* SSSVoiceDashboard::GetStrategy() const
 	return VLEditorSubsystem->GetActiveStrategy();
 }
 
-FText SSSVoiceDashboard::GetLocalizedVoiceText() const
+FText SSSVoiceDashboard::GetVoiceCultureText() const
 {
-	return GetStrategy()->DisplayMatchLocalizedVoicePattern();
+	return GetStrategy()->DisplayMatchVoiceCulturePattern();
 }
 
-FText SSSVoiceDashboard::GetLocalizedVoiceExampleText() const
+FText SSSVoiceDashboard::GetVoiceCultureExampleText() const
 {
-	return GetStrategy()->DisplayMatchLocalizedVoicePatternExample();
+	return GetStrategy()->DisplayMatcVoiceCulturePatternExample();
 }
 
 FText SSSVoiceDashboard::GetMatchCulturePatternText() const

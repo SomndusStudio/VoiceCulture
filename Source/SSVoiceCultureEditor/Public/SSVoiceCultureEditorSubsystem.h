@@ -98,7 +98,7 @@ public:
 	static void GetAssetsFromVoiceActor(TArray<FAssetData>& Assets, FString VoiceActorName);
 
 	/**
-	 * Retrieves all localized voice assets that match the culture filtering criteria.
+	 * Retrieves all voice culture assets that match the culture filtering criteria.
 	 *
 	 * @param Assets Array to populate with results.
 	 * @param bCompleteCulture If true, includes only assets with complete culture data.

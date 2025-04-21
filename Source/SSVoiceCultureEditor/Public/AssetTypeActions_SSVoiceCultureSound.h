@@ -25,7 +25,7 @@
 class SSVOICECULTUREEDITOR_API FAssetTypeActions_SSVoiceCultureSound : public FAssetTypeActions_Base
 {
 public:
-	virtual FText GetName() const override { return NSLOCTEXT("AssetTypeActions", "SSVoiceCultureSound", "Localized Voice Audio"); }
+	virtual FText GetName() const override { return NSLOCTEXT("AssetTypeActions", "SSVoiceCultureSound", "Voice Culture Audio"); }
 	virtual FColor GetTypeColor() const override { return FColor(255, 200, 0); }
 	virtual UClass* GetSupportedClass() const override { return USSVoiceCultureSound::StaticClass(); }
 	virtual uint32 GetCategories() override { return EAssetTypeCategories::Sounds; }

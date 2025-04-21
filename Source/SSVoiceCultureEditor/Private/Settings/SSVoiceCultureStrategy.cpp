@@ -29,12 +29,12 @@ bool USSVoiceCultureStrategy::ExecuteOneCultureAutoPopulateInAsset_Implementatio
 	TArray<FAssetData> AllAssets = USSVoiceCultureEditorSubsystem::GetAllSoundBaseAssets();
 	return ExecuteOptimizedOneCultureAutoPopulateInAsset(TargetAsset, CultureCode, bOverrideExisting, OutNewEntry, AllAssets);
 }
-FText USSVoiceCultureStrategy::DisplayMatchLocalizedVoicePattern_Implementation() const
+FText USSVoiceCultureStrategy::DisplayMatchVoiceCulturePattern_Implementation() const
 {
 	return FText::FromString("Not Specified (You should do it)");
 }
 
-FText USSVoiceCultureStrategy::DisplayMatchLocalizedVoicePatternExample_Implementation() const
+FText USSVoiceCultureStrategy::DisplayMatcVoiceCulturePatternExample_Implementation() const
 {
 	return FText::FromString("Not Specified (You should do it)");
 }
