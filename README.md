@@ -1,6 +1,6 @@
-# SSVoiceLocalization Plugin
+# SSVoiceCulture Plugin
 
-**SSVoiceLocalization** is a plugin for Unreal Engine 4.27 that enables advanced handling of localized voice audio, independently from Unreal's native text localization system.
+**SSVoiceCulture** is a plugin for Unreal Engine 4.27 that enables advanced handling of localized voice audio, independently from Unreal's native text localization system.
 
 It introduces a new sound asset (`USSLocalizedVoiceSound`) that inherits from `USoundBase`, allowing integration into any Unreal audio system while supporting per-language audio resolution.
 
@@ -35,7 +35,7 @@ AudioComponent->SetSound(MyLocalizedVoiceSound);
 AudioComponent->Play();
 
 // Change the current voice language at runtime
-auto* Subsystem = GEngine->GetEngineSubsystem<USSVoiceLocalizationSubsystem>();
+auto* Subsystem = GEngine->GetEngineSubsystem<USSVoiceCultureSubsystem>();
 Subsystem->SetCurrentLanguage("fr"); // Switch to French
 
 ```
