@@ -1,4 +1,8 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+﻿/**
+* Copyright (C) 2020-2025 Schartier Isaac
+*
+* Official Documentation: https://www.somndus-studio.com
+*/
 
 #pragma once
 
