@@ -42,6 +42,23 @@ const USSVoiceCultureSettings* USSVoiceCultureSettings::GetSetting()
 	return GetDefault<USSVoiceCultureSettings>();
 }
 
+FString USSVoiceCultureSettings::GetCurrentLanguage() const
+{
+	// if current language is empty -> default fallback
+	if (CurrentLanguage.IsEmpty())
+	{
+		return DefaultLanguageFallback;
+	}
+
+	// if current language supported
+	if (SupportedVoiceCultures.Contains(CurrentLanguage))
+	{
+		return CurrentLanguage;
+	}
+
+	return DefaultLanguageFallback;
+}
+
 void USSVoiceCultureSettings::SetPreviewLanguage(const FString& NewLanguage)
 {
 	auto* Settings = GetMutableSetting();

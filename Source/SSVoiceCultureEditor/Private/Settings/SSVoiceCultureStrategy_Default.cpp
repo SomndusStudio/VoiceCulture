@@ -73,7 +73,7 @@ FText USSVoiceCultureStrategy_Default::DisplayMatchVoiceCulturePattern_Implement
 	return FText::FromString("LVA_{ActorName}_{Suffix}");
 }
 
-FText USSVoiceCultureStrategy_Default::DisplayMatcVoiceCulturePatternExample_Implementation() const
+FText USSVoiceCultureStrategy_Default::DisplayMatchVoiceCulturePatternExample_Implementation() const
 {
 	return FText::FromString("LVA_NPC001_MarketScene01_L01");
 }

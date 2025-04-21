@@ -64,7 +64,7 @@ public:
 	 * Used to help users understand the expected format (e.g., "MyLine_en", "VO_001_fr").
 	 */
 	UFUNCTION(BlueprintNativeEvent)
-	FText DisplayMatcVoiceCulturePatternExample() const;
+	FText DisplayMatchVoiceCulturePatternExample() const;
 
 	/**
 	 * Returns a description of how this strategy recognizes culture codes from file/folder structure or asset naming.

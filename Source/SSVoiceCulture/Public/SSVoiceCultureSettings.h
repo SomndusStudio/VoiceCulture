@@ -48,9 +48,14 @@ public:
 	 * Default voice language used when no specific language is selected.
 	 * Also acts as a fallback if a culture voice is missing.
 	 */
-	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Voice Culture|General")
-	FString DefaultLanguage = TEXT("en");
+	UPROPERTY(BlueprintReadOnly, Category="Voice Culture|General")
+	FString DefaultLanguageFallback = TEXT("en");
 
+	UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Voice Culture|General")
+	FString CurrentLanguage = TEXT("en");
+
+	FString GetCurrentLanguage() const;
+	
 	/**
 	 * If enabled, the preview language will be used during gameplay and PIE (Play In Editor).
 	 * This is useful for testing culture voices without affecting the actual game language.

@@ -34,7 +34,7 @@ FText USSVoiceCultureStrategy::DisplayMatchVoiceCulturePattern_Implementation() 
 	return FText::FromString("Not Specified (You should do it)");
 }
 
-FText USSVoiceCultureStrategy::DisplayMatcVoiceCulturePatternExample_Implementation() const
+FText USSVoiceCultureStrategy::DisplayMatchVoiceCulturePatternExample_Implementation() const
 {
 	return FText::FromString("Not Specified (You should do it)");
 }

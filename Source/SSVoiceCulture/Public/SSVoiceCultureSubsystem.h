@@ -47,6 +47,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FString GetCurrentVoiceCulture() const;
 
+	/**
+	 * 
+	 * @return The array of all supported cultures from .ini
+	 */
+	UFUNCTION(BlueprintCallable)
+	TArray<FString> GetSupportedVoiceCultures() const;
+	
 #if WITH_EDITOR
 	/**
 	 * In editor only: returns the preview voice culture defined in the developer settings.

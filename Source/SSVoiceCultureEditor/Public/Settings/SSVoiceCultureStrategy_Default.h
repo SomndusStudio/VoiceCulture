@@ -61,7 +61,7 @@ public:
 	bool bRecursiveClasses = true;
 
 	virtual FText DisplayMatchVoiceCulturePattern_Implementation() const override;
-	virtual FText DisplayMatcVoiceCulturePatternExample_Implementation() const override;
+	virtual FText DisplayMatchVoiceCulturePatternExample_Implementation() const override;
 
 	virtual FText DisplayMatchCultureRulePattern_Implementation() const override;
 	virtual FText DisplayMatchCultureRulePatternExample_Implementation() const override;

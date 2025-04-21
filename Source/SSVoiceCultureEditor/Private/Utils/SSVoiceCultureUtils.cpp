@@ -290,8 +290,8 @@ void FSSVoiceCultureUtils::GenerateCultureCoverageReport(FSSVoiceCultureReport& 
 	AssetRegistryModule.Get().GetAssets(Filter, FoundAssets);
 
 	// Get supported voice cultures
-	const USSVoiceCultureSettings* VoiceLocalizationSettings = USSVoiceCultureSettings::GetSetting();
-	TSet<FString> AllCultures = VoiceLocalizationSettings->SupportedVoiceCultures;
+	const USSVoiceCultureSettings* VoiceCultureSettings = USSVoiceCultureSettings::GetSetting();
+	TSet<FString> AllCultures = VoiceCultureSettings->SupportedVoiceCultures;
 
 	for (const FAssetData& AssetData : FoundAssets)
 	{

@@ -115,7 +115,7 @@ FText SSSVoiceDashboard::GetVoiceCultureText() const
 
 FText SSSVoiceDashboard::GetVoiceCultureExampleText() const
 {
-	return GetStrategy()->DisplayMatcVoiceCulturePatternExample();
+	return GetStrategy()->DisplayMatchVoiceCulturePatternExample();
 }
 
 FText SSSVoiceDashboard::GetMatchCulturePatternText() const
