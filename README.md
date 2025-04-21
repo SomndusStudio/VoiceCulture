@@ -1,45 +1,71 @@
-# SSVoiceCulture Plugin
+# SS Voice Culture Plugin
 
-**SSVoiceCulture** is a plugin for Unreal Engine 4.27 that enables advanced handling of localized voice audio, independently from Unreal's native text localization system.
+**VoiceCulture** is a localization-ready voice-over plugin for Unreal Engine.  
+It introduces a custom sound asset (`USSVoiceCultureSound`) that automatically plays the correct voice line based on the game's active language or culture.
 
-It introduces a new sound asset (`USSVoiceCultureSound `) that inherits from `USoundBase`, allowing integration into any Unreal audio system while supporting per-language audio resolution.
+It also provides powerful editor tools to track localization coverage, organize voice actors, and auto-populate missing audio using naming strategies.
 
----
 
-## Features
+## ✨ Features
 
-- New asset type: `Voice Culture Sound ` (inherits from `USoundBase`)
-- Supports multiple audio versions per language (based on culture codes)
-- Runtime voice language selection, independent from game UI/text language
-- In-editor playback with thumbnail and toolbar buttons (Play / Stop)
-- Custom asset editor with details panel and audio preview
-- Engine subsystem to manage current voice language at runtime
-- Fully compatible with `AudioComponent`, `AnimNotifies`, `Montages`, etc.
+- `USSVoiceCultureSound`: a culture-aware sound asset supporting multiple localized voice lines
+- Automatic resolution of the correct voice asset at runtime (with fallback support)
+- Full compatibility with native UE audio systems (`AudioComponent`, `AnimNotifies`, `Dialogue`, etc.)
+- Custom editor dashboard with:
+  - Culture coverage report and progress per language
+  - Voice actor grouping via naming conventions
+  - Filters for missing/complete cultures
+  - Auto-population of missing voice lines
+- Strategy system with pluggable profiles (supporting custom naming conventions)
+- Blueprint & C++ APIs for full control
 
----
 
-## How It Works
+## 📦 Installation
 
-1. Create a `Voice Culture Sound` asset from the Content Browser
-2. Add one or more localized versions using culture codes and `SoundBase` references
-3. Use the asset like any other `SoundBase` (play in code, Blueprint, etc.)
-4. The correct audio is resolved at runtime based on the voice language
+### Manual
 
----
+1. Clone or download this repository.
+2. Copy the `VoiceCulture` plugin folder into your project's `Plugins/` directory.
+3. Regenerate project files.
+4. Build the project in Visual Studio or via Unreal Editor.
 
-## Code Example
 
-```cpp
-// Play a localized voice from code
-AudioComponent->SetSound(VoiceCultureSound);
-AudioComponent->Play();
+## 🧩 Plugin Modules
 
-// Change the current voice language at runtime
-auto* Subsystem = GEngine->GetEngineSubsystem<USSVoiceCultureSubsystem>();
-Subsystem->SetCurrentVoiceCulture("fr"); // Switch to French
+| Module Name            | Type     |
+|------------------------|----------|
+| `SSVoiceCulture`       | Runtime  |
+| `SSVoiceCultureEditor` | Editor   |
 
-```
 
-## License
+## 🔧 Technical Details
 
-MIT License © SCHARTIER Isaac
+- Written in C++ (UE5+)
+- Supports Windows and macOS (Editor + Packaged Builds)
+- Does not rely on networking
+- Strategy logic can be extended in both Blueprint and C++
+
+
+## 📚 Documentation
+
+Full documentation available at:  
+[https://somndus-studio.com/docs/category/voice-culture](https://somndus-studio.com/docs/category/voice-culture)
+
+
+## 🧠 Use Case Examples
+
+- Narrative games with multi-language dialogue
+- Localized cutscenes or character banter
+- Tools pipelines that manage large amounts of voice-over content
+
+## 🏷 License
+
+This plugin is released under the [MIT License](LICENSE) (or whatever license you choose).
+
+
+## 👤 Author
+
+**Isaac Schartier**  
+[https://somndus-studio.com](https://somndus-studio.com)
+
+For support: [support@somndus-studio.com](mailto:support@somndus-studio.com)

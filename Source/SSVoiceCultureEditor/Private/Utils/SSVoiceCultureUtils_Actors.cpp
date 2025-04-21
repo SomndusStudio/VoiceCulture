@@ -41,5 +41,5 @@ void FSSVoiceCultureUtils::GenerateActorListJson()
 	const FString OutputPath = FPaths::ProjectSavedDir() / TEXT("SSVoiceCulture") / TEXT("VoiceActors.json");
 	FFileHelper::SaveStringToFile(OutputString, *OutputPath);
 
-	UE_LOG(LogVoiceCultureEditor, Log, TEXT("[SSVoice] Saved voice actor list to %s"), *OutputPath);
+	UE_LOG(LogVoiceCultureEditor, Log, TEXT("[SSVoiceCulture] Saved voice actor list to %s"), *OutputPath);
 }

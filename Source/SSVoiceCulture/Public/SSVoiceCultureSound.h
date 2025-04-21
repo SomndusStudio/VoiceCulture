@@ -9,6 +9,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "Sound/SoundBase.h"
+#include "Runtime/Launch/Resources/Version.h"
 #include "SSVoiceCultureSound.generated.h"
 
 USTRUCT(BlueprintType)
@@ -16,10 +17,10 @@ struct FSSCultureAudioEntry
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voice Culture")
 	FString Culture;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voice Culture")
 	USoundBase* Sound;
 };
 

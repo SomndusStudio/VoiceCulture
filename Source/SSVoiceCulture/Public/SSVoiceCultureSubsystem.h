@@ -7,6 +7,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/GameInstance.h"
 #include "Subsystems/EngineSubsystem.h"
 #include "SSVoiceCultureSubsystem.generated.h"
 
@@ -31,12 +32,14 @@ public:
 	virtual void Deinitialize() override;
 
 	/**
-	 * Sets the current voice culture (language) to use for culture voice audio.
-	 * This can be called at runtime to switch voices independently from UI localization.
+	 * Sets the active voice culture (language) used by the runtime system to resolve localized voice audio.
 	 *
-	 * @param Language The culture/language code to apply (e.g., "en", "fr", "jp").
+	 * This will override the current voice language both in memory and in the user config file (Saved/Config/).
+	 * The setting is persistent between editor/game sessions.
+	 *
+	 * @param Language The culture code to apply (e.g. "en", "fr", "jp").
 	 */
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Voice Culture")
 	void SetCurrentVoiceCulture(const FString& Language);
 
 	/**
@@ -44,14 +47,14 @@ public:
 	 *
 	 * @return The language code currently used for selecting culture voice assets.
 	 */
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Voice Culture")
 	FString GetCurrentVoiceCulture() const;
 
 	/**
 	 * 
 	 * @return The array of all supported cultures from .ini
 	 */
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Voice Culture")
 	TArray<FString> GetSupportedVoiceCultures() const;
 	
 #if WITH_EDITOR

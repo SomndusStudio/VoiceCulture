@@ -158,8 +158,6 @@ TSharedRef<SDockTab> FSSVoiceCultureSoundEditorToolkit::SpawnGraphTab(const FSpa
 			{
 				return E.Culture.ToLower() == Culture.ToLower();
 			});
-
-			USoundBase* AssignedSound = Entry ? Entry->Sound : nullptr;
 			
 			USSVoiceCultureGraphNode* GraphNode = NewObject<USSVoiceCultureGraphNode>(VoiceCultureGraph);
 			GraphNode->SetFlags(RF_Transactional);
@@ -170,11 +168,6 @@ TSharedRef<SDockTab> FSSVoiceCultureSoundEditorToolkit::SpawnGraphTab(const FSpa
 
 			GraphNode->NodePosX = StartX;                     // Every node in same column
 			GraphNode->NodePosY = StartY + Index * PaddingY;  // Vertical padding
-
-			UE_LOG(LogTemp, Warning, TEXT("Added node of class %s at pos %d, %d"),
-			       *GraphNode->GetClass()->GetName(),
-			       GraphNode->NodePosX,
-			       GraphNode->NodePosY);
 
 			VoiceCultureGraph->AddNode(GraphNode);
 
@@ -206,6 +199,7 @@ void FSSVoiceCultureSoundEditorToolkit::RefreshGraphEditor()
 	if (!GraphEditor.IsValid())
 		return;
 
+	// Retrieve the currently displayed graph in the editor
 	UEdGraph* Graph = GraphEditor->GetCurrentGraph();
 	if (!Graph)
 		return;
@@ -215,13 +209,14 @@ void FSSVoiceCultureSoundEditorToolkit::RefreshGraphEditor()
 		if (!IsValid(Node))
 			continue;
 
-		// Cette ligne marque le noeud comme modifié, ce qui va forcer un redraw
+		// Mark the node as modified (ensures undo support and editor recognition)
 		Node->Modify();
 
-		// Optionnel: Notify the node that it changed
+		// Optionally, reconstruct the node (force rebuild of pins and layout)
 		Node->ReconstructNode();
 	}
 
+	// Notify the editor that the graph has changed (forces full redraw)
 	Graph->NotifyGraphChanged();
 }
 
@@ -236,7 +231,7 @@ void FSSVoiceCultureSoundEditorToolkit::OnDetailsChanged(const FPropertyChangedE
 	{
 		RefreshGraphEditor();
 	
-		UE_LOG(LogTemp, Log, TEXT("[VoiceCulture] Graph nodes updated after property change."));
+		UE_LOG(LogVoiceCultureEditor, Log, TEXT("[VoiceCulture] Graph nodes updated after property change."));
 	}
 }
 
@@ -309,7 +304,7 @@ void FSSVoiceCultureSoundEditorToolkit::AutoPopulateCultures()
 {
 	if (!Asset)
 	{
-		UE_LOG(LogVoiceCultureEditor, Warning, TEXT("[SSVoice] AutoPopulate: Invalid asset"));
+		UE_LOG(LogVoiceCultureEditor, Warning, TEXT("[SSVoiceCulture] AutoPopulate: Invalid asset"));
 		return;
 	}
 
@@ -324,11 +319,11 @@ void FSSVoiceCultureSoundEditorToolkit::AutoPopulateCultures()
 		// Refresh graphs
 		RefreshGraphEditor();
 		
-		UE_LOG(LogVoiceCultureEditor, Log, TEXT("[SSVoice] AutoPopulate complete for '%s'"), *Asset->GetName());
+		UE_LOG(LogVoiceCultureEditor, Log, TEXT("[SSVoiceCulture] AutoPopulate complete for '%s'"), *Asset->GetName());
 	}
 	else
 	{
-		UE_LOG(LogVoiceCultureEditor, Warning, TEXT("[SSVoice] AutoPopulate: No matching entries found for '%s'"),
+		UE_LOG(LogVoiceCultureEditor, Warning, TEXT("[SSVoiceCulture] AutoPopulate: No matching entries found for '%s'"),
 		       *Asset->GetName());
 	}
 }

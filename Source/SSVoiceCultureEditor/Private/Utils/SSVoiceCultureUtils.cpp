@@ -26,7 +26,7 @@ bool FSSVoiceCultureUtils::SaveAsset(UPackage* Package, const FString& PackageFi
 {
 	if (!Package)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[SSVoice] SaveAsset: Invalid package"));
+		UE_LOG(LogVoiceCultureEditor, Warning, TEXT("[SSVoiceCulture] SaveAsset: Invalid package"));
 		return false;
 	}
 
@@ -73,7 +73,7 @@ bool FSSVoiceCultureUtils::AutoPopulateFromNaming(USSVoiceCultureSound* TargetAs
 
 	if (!IsValid(Strategy))
 	{
-		UE_LOG(LogVoiceCultureEditor, Warning, TEXT("[SSVoice] Profile has no valid strategy instance."));
+		UE_LOG(LogVoiceCultureEditor, Warning, TEXT("[SSVoiceCulture] Profile has no valid strategy instance."));
 		return false;
 	}
 
@@ -130,14 +130,14 @@ bool FSSVoiceCultureUtils::AutoPopulateFromNaming(USSVoiceCultureSound* TargetAs
 					{
 						Entry.Sound = Pair.Value;
 
-						UE_LOG(LogVoiceCultureEditor, Log, TEXT("[SSVoice] Overwrote culture '%s' with new sound: %s"),
+						UE_LOG(LogVoiceCultureEditor, Log, TEXT("[SSVoiceCulture] Overwrote culture '%s' with new sound: %s"),
 							   *NormalizedCulture, *Pair.Value->GetName());
 						break;
 					}
 				}
 			}
 			
-			UE_LOG(LogVoiceCultureEditor, Verbose, TEXT("[SSVoice] Culture '%s' already exists, skipping."),
+			UE_LOG(LogVoiceCultureEditor, Verbose, TEXT("[SSVoiceCulture] Culture '%s' already exists, skipping."),
 			       *NormalizedCulture);
 			continue;
 		}
@@ -179,7 +179,7 @@ bool FSSVoiceCultureUtils::AutoPopulateFromNaming(USSVoiceCultureSound* TargetAs
 	{
 		FSSVoiceCultureUI::NotifySuccess(NSLOCTEXT("SSVoiceCultureEditor", "AutoPopulateSuccess", "Auto-populate completed."));
 	}
-	UE_LOG(LogVoiceCultureEditor, Log, TEXT("[SSVoice] Auto-populate added %d entries into '%s'"), LocalizedSounds.Num(),
+	UE_LOG(LogVoiceCultureEditor, Log, TEXT("[SSVoiceCulture] Auto-populate added %d entries into '%s'"), LocalizedSounds.Num(),
 	       *AssetName);
 	return true;
 }
@@ -274,12 +274,17 @@ bool FSSVoiceCultureUtils::AutoPopulateFromVoiceActor(const FString& VoiceActorN
 
 void FSSVoiceCultureUtils::GenerateCultureCoverageReport(FSSVoiceCultureReport& OutReport)
 {
+	// Mapping of total asset count per culture (expected)
+	// Used to track how many voice assets should exist for each culture
 	TMap<FString, int32> TotalAssetsPerCulture;
+	
+	// Mapping of actual assets found that contain each culture (observed)
 	TMap<FString, int32> CultureHitCount;
 
-	// Load asset registry
+	// Load the Asset Registry module to query assets
 	FAssetRegistryModule& AssetRegistryModule = USSVoiceCultureEditorSubsystem::GetAssetRegistryModule();
 
+	// Build filter to query all USSVoiceCultureSound assets under /Game/
 	FARFilter Filter;
 	Filter.ClassPaths.Add(USSVoiceCultureSound::StaticClass()->GetClassPathName());
 	Filter.bRecursiveClasses = true;
@@ -289,13 +294,14 @@ void FSSVoiceCultureUtils::GenerateCultureCoverageReport(FSSVoiceCultureReport& 
 	TArray<FAssetData> FoundAssets;
 	AssetRegistryModule.Get().GetAssets(Filter, FoundAssets);
 
-	// Get supported voice cultures
+	// Get the list of all supported voice cultures (configured in settings)
 	const USSVoiceCultureSettings* VoiceCultureSettings = USSVoiceCultureSettings::GetSetting();
 	TSet<FString> AllCultures = VoiceCultureSettings->SupportedVoiceCultures;
 
+	// Iterate over all found assets and extract culture usage
 	for (const FAssetData& AssetData : FoundAssets)
 	{
-		// Lire le tag "VoiceCultures" directement
+		// Attempt to read the "VoiceCultures" metadata tag (e.g., "en,fr,jp")
 		const FAssetTagValueRef Result = AssetData.TagsAndValues.FindTag("VoiceCultures");
 
 		TSet<FString> PresentCultures;
@@ -306,7 +312,8 @@ void FSSVoiceCultureUtils::GenerateCultureCoverageReport(FSSVoiceCultureReport& 
 
 			TArray<FString> Cultures;
 			CultureString.ParseIntoArray(Cultures, TEXT(","));
-
+			
+			// Register each present culture
 			for (const FString& Culture : Cultures)
 			{
 				const FString Normalized = Culture.ToLower();
@@ -314,21 +321,22 @@ void FSSVoiceCultureUtils::GenerateCultureCoverageReport(FSSVoiceCultureReport& 
 				PresentCultures.Add(Normalized);
 			}
 		}
-		// 2. Compter comme 1 asset total pour *chaque culture supportée*
+		
+		// For each supported culture, consider this asset as expected to have a version
 		for (const FString& Culture : AllCultures)
 		{
 			TotalAssetsPerCulture.FindOrAdd(Culture)++;
 
-			// (Optionnel) Log if missing culture
+			// Optional logging: notify if this asset is missing this culture
 			if (!PresentCultures.Contains(Culture))
 			{
 				// Missing culture in this asset
-				// UE_LOG(LogVoiceCultureEditor, Verbose, TEXT("Asset '%s' missing culture: %s"), *AssetData.AssetName.ToString(), *Culture);
+				UE_LOG(LogVoiceCultureEditor, Warning, TEXT("Asset '%s' missing culture: %s"), *AssetData.AssetName.ToString(), *Culture);
 			}
 		}
 	}
 
-	// 3. Generate json report
+	// Create the final report structure
 	OutReport.GeneratedAt = FDateTime::UtcNow();
 
 	for (const FString& Culture : AllCultures)
@@ -340,10 +348,11 @@ void FSSVoiceCultureUtils::GenerateCultureCoverageReport(FSSVoiceCultureReport& 
 		OutReport.Entries.Add(Entry);
 	}
 
-	// Save report
+	// Serialize the report as JSON
 	FString Json;
 	FJsonObjectConverter::UStructToJsonObjectString(OutReport, Json);
 
+	// Save the report to a file
 	FString Path = FPaths::ProjectSavedDir() / TEXT("SSVoiceCulture/VoiceCultureReport.json");
 	FFileHelper::SaveStringToFile(Json, *Path);
 }
@@ -372,11 +381,11 @@ int32 FSSVoiceCultureUtils::AutoPopulateCulture(
 	);
 	SlowTask->MakeDialog(true);
 
-	// Phase 1 - Asset scan and filtering using metadata only
-	const FString NormalizedCulture = TargetCulture.ToLower();
-
 	// Step 0: Preload all SoundBase assets once to avoid multiple scans
 	const TArray<FAssetData> AllSoundAssets = USSVoiceCultureEditorSubsystem::GetAllSoundBaseAssets();
+	
+	// Phase 1 - Asset scan and filtering using metadata only
+	const FString NormalizedCulture = TargetCulture.ToLower();
 	
 	// 1. Retrieve assets
 	TArray<FAssetData> AssetList = USSVoiceCultureEditorSubsystem::GetAllLocalizeVoiceSoundAssets();

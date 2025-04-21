@@ -65,12 +65,16 @@ USSVoiceCultureStrategy* USSVoiceCultureEditorSubsystem::GetActiveStrategy()
 
 const FSSVoiceStrategyProfile* USSVoiceCultureEditorSubsystem::GetActiveProfile() const
 {
+	// Retrieve the editor settings singleton
 	const auto* EditorSettings = USSVoiceCultureEditorSettings::GetSetting();
+
+	// If settings are null or no profiles are defined, fallback to the default profile
 	if (!EditorSettings || EditorSettings->StrategyProfiles.Num() == 0)
 	{
 		return &EditorSettings->FallbackProfile;
 	}
 
+	// Search for a profile that matches the active name defined in settings
 	for (const auto& Profile : EditorSettings->StrategyProfiles)
 	{
 		if (Profile.ProfileName == EditorSettings->ActiveVoiceProfileName)
@@ -79,18 +83,25 @@ const FSSVoiceStrategyProfile* USSVoiceCultureEditorSubsystem::GetActiveProfile(
 		}
 	}
 
-	// If not found (Default internal profile)
+	// If no matching profile is found, fallback to the default
 	return &EditorSettings->FallbackProfile;
 }
 
 const FSSVoiceStrategyProfile* USSVoiceCultureEditorSubsystem::GetProfileFromName(FString ProfileName) const
 {
+	// Get editor settings singleton
 	const auto* EditorSettings = USSVoiceCultureEditorSettings::GetSetting();
-	if (!EditorSettings || EditorSettings->StrategyProfiles.Num() == 0)
+
+	// Must be not null
+	check(EditorSettings);
+	
+	// Return fallback if no profiles are defined
+	if (EditorSettings->StrategyProfiles.Num() == 0)
 	{
 		return &EditorSettings->FallbackProfile;
 	}
 
+	// Iterate through all defined profiles to find a name match
 	for (const auto& Profile : EditorSettings->StrategyProfiles)
 	{
 		if (Profile.ProfileName == ProfileName)
@@ -99,7 +110,7 @@ const FSSVoiceStrategyProfile* USSVoiceCultureEditorSubsystem::GetProfileFromNam
 		}
 	}
 
-	// If not found (Default internal profile)
+	// Return fallback profile if no matching profile is found
 	return &EditorSettings->FallbackProfile;
 }
 
@@ -143,19 +154,22 @@ TArray<FAssetData> USSVoiceCultureEditorSubsystem::GetAllLocalizeVoiceSoundAsset
 
 void USSVoiceCultureEditorSubsystem::GetAssetsFromVoiceActor(TArray<FAssetData>& Assets, FString VoiceActorName)
 {
+	// Access the asset registry module
 	FAssetRegistryModule& AssetRegistry = GetAssetRegistryModule();
 
+	// Early exit if assets are still being loaded (unsafe to query)
 	if (AssetRegistry.Get().IsLoadingAssets()) return;
 
 	TArray<FAssetData> AssetsAll;
 	TSet<FAssetData> VoiceActorAssets;
 
-	// If empty do nothing
+	// If no actor name provided, exit
 	if (VoiceActorName.IsEmpty()) return;
 	
-	// 1. Retrieve assets
+	// 1. Retrieve all assets of type USSVoiceCultureSound
 	Assets = GetAllLocalizeVoiceSoundAssets();
 
+	// 2. Filter those that contain the actor name in their asset name
 	for (const auto& AssetData : Assets)
 	{
 		const FString Name = AssetData.AssetName.ToString();
@@ -165,7 +179,8 @@ void USSVoiceCultureEditorSubsystem::GetAssetsFromVoiceActor(TArray<FAssetData>&
 		
 		VoiceActorAssets.Add(AssetData);
 	}
-	
+
+	// 3. Return filtered list
 	Assets = VoiceActorAssets.Array();
 }
 
@@ -173,17 +188,20 @@ void USSVoiceCultureEditorSubsystem::GetAssetsWithCulture(TArray<FAssetData>& As
 {
 	FAssetRegistryModule& AssetRegistry = GetAssetRegistryModule();
 
+	// Skip if asset registry is still scanning
 	if (AssetRegistry.Get().IsLoadingAssets()) return;
 
-	const USSVoiceCultureSettings* Settings = USSVoiceCultureSettings::GetSetting();
+	// Retrieve supported cultures from settings
+	const auto* Settings = USSVoiceCultureSettings::GetSetting();
 	const TSet<FString> AllCultures = Settings ? Settings->SupportedVoiceCultures : TSet<FString>();
 	int32 AllCultureCount = AllCultures.Num();
 
-	// Avoid array edition inf iteration
+	// Work on a copy to avoid modifying the array during iteration
 	TArray<FAssetData> AllAssets = Assets;
 
 	for (const auto& AssetData : AllAssets)
 	{
+		// Try reading the "VoiceCultures" tag (comma-separated string like "en,fr,jp")
 		const FAssetTagValueRef CultureTag = AssetData.TagsAndValues.FindTag("VoiceCultures");
 		TSet<FString> PresentCultures;
 
@@ -193,7 +211,8 @@ void USSVoiceCultureEditorSubsystem::GetAssetsWithCulture(TArray<FAssetData>& As
 
 			TArray<FString> Cultures;
 			CultureString.ParseIntoArray(Cultures, TEXT(","));
-
+			
+			// Normalize cultures (lowercase)
 			for (const FString& Culture : Cultures)
 			{
 				const FString Normalized = Culture.ToLower();
@@ -201,9 +220,10 @@ void USSVoiceCultureEditorSubsystem::GetAssetsWithCulture(TArray<FAssetData>& As
 			}
 		}
 
-		// bCompleteCulture => Include else Exclude
+		// Filter logic based on completeness
 		if (bCompleteCulture)
 		{
+			// If not complete, remove the asset from the list
 			if (PresentCultures.Num() != AllCultureCount)
 			{
 				Assets.Remove(AssetData);
@@ -211,6 +231,7 @@ void USSVoiceCultureEditorSubsystem::GetAssetsWithCulture(TArray<FAssetData>& As
 		}
 		else
 		{
+			// If already complete, remove it (we want incomplete only)
 			if (PresentCultures.Num() == AllCultureCount)
 			{
 				Assets.Remove(AssetData);
@@ -246,7 +267,7 @@ USSVoiceCultureStrategy* USSVoiceCultureEditorSubsystem::RefreshStrategy()
 	UClass* StrategyClass = ActiveProfile->StrategyClass.LoadSynchronous();
 	if (!StrategyClass)
 	{
-		UE_LOG(LogVoiceCultureEditor, Warning, TEXT("[SSVoice] Failed to load AutoPopulate strategy class"));
+		UE_LOG(LogVoiceCultureEditor, Warning, TEXT("[SSVoiceCulture] Failed to load AutoPopulate strategy class"));
 		return nullptr;
 	}
 

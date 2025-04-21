@@ -18,10 +18,10 @@ struct FSSVoiceStrategyProfile
 {
 	GENERATED_BODY()
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Voice Culture")
 	FString ProfileName;
 	
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Voice Culture")
 	TSoftClassPtr<USSVoiceCultureStrategy> StrategyClass;
 };
 

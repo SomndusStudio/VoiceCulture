@@ -130,7 +130,7 @@ TSharedRef<SWidget> SSSVoiceDashboard::BuildProfileSectionWidget()
 		+ SVerticalBox::Slot().AutoHeight()
 		[
 			BuildKeyValueSection(
-				NSLOCTEXT("SSVoiceCultureEditor", "VoiceCultureSound", "Culture Audio"),
+				NSLOCTEXT("SSVoiceCultureEditor", "VoiceCultureAsset", "Voice Culture Audio"),
 				{
 					TPair<FText, TAttribute<FText>>(
 						NSLOCTEXT("SSVoiceCultureEditor", "Pattern", "Pattern:"),
@@ -149,7 +149,7 @@ TSharedRef<SWidget> SSSVoiceDashboard::BuildProfileSectionWidget()
 		+ SVerticalBox::Slot().AutoHeight()
 		[
 			BuildKeyValueSection(
-				NSLOCTEXT("SSVoiceCultureEditor", "VoiceCultureSound", "Culture Audio"),
+				NSLOCTEXT("SSVoiceCultureEditor", "CultureSoundBase", "Culture Sound Base"),
 				{
 					TPair<FText, TAttribute<FText>>(
 						NSLOCTEXT("SSVoiceCultureEditor", "Pattern", "Pattern:"),
@@ -246,7 +246,7 @@ TSharedRef<ITableRow> SSSVoiceDashboard::OnGenerateCultureRow(TSharedPtr<FSSVoic
 				.Text(NSLOCTEXT("SSVoiceCultureEditor", "AutoPopulateCultureBtn", "Auto populate"))
 				.OnClicked_Lambda([this, Culture = Entry->Culture]()
 				{
-					UE_LOG(LogVoiceCultureEditor, Log, TEXT("[SSVoice] Requested AutoPopulate for culture: %s"), *Culture);
+					UE_LOG(LogVoiceCultureEditor, Log, TEXT("[SSVoiceCulture] Requested AutoPopulate for culture: %s"), *Culture);
 					OpenAutoPopulateConfirmationDialog(Culture);
 					return FReply::Handled();
 				})

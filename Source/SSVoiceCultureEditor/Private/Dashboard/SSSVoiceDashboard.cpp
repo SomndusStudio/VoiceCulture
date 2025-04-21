@@ -139,7 +139,7 @@ void SSSVoiceDashboard::OpenAutoPopulateConfirmationDialog(const FString& Cultur
 
 	if (Result == EAppReturnType::Yes)
 	{
-		UE_LOG(LogVoiceCultureEditor, Log, TEXT("[SSVoice] Auto-populate confirmed for culture: %s"), *Culture);
+		UE_LOG(LogVoiceCultureEditor, Log, TEXT("[SSVoiceCulture] Auto-populate confirmed for culture: %s"), *Culture);
 
 		AsyncTask(ENamedThreads::GameThread, [this, Culture]()
 		{
@@ -147,7 +147,7 @@ void SSSVoiceDashboard::OpenAutoPopulateConfirmationDialog(const FString& Cultur
 			
 			int32 ModifiedCount = FSSVoiceCultureUtils::AutoPopulateCulture(Culture, EditorSettings->bAutoPopulateOverwriteExisting);
 
-			UE_LOG(LogVoiceCultureEditor, Log, TEXT("[SSVoice] Modified voice: %d"), ModifiedCount);
+			UE_LOG(LogVoiceCultureEditor, Log, TEXT("[SSVoiceCulture] Modified voice: %d"), ModifiedCount);
 
 			// Force regenerate report end refresh voice culture coverage
 			OnGenerateReportClicked();
@@ -157,32 +157,38 @@ void SSSVoiceDashboard::OpenAutoPopulateConfirmationDialog(const FString& Cultur
 
 void SSSVoiceDashboard::LoadActorListFromJson()
 {
+	// Clear the previous list of actors
 	AllActorItems.Empty();
 
+	// Build the full path to the actor list JSON file
 	const FString JsonPath = FPaths::ProjectSavedDir() / TEXT("SSVoiceCulture/VoiceActors.json");
 	FString JsonRaw;
 
+	// Attempt to load the file contents into a string
 	if (!FFileHelper::LoadFileToString(JsonRaw, *JsonPath))
 	{
-		UE_LOG(LogVoiceCultureEditor, Warning, TEXT("[SSVoice] Failed to read actor list JSON at %s"), *JsonPath);
+		UE_LOG(LogVoiceCultureEditor, Warning, TEXT("[SSVoiceCulture] Failed to read actor list JSON at %s"), *JsonPath);
 		return;
 	}
-
+	
+	// Parse the raw JSON string into a JSON value
 	TSharedPtr<FJsonValue> RootValue;
 	TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonRaw);
 
 	if (!FJsonSerializer::Deserialize(Reader, RootValue) || !RootValue.IsValid())
 	{
-		UE_LOG(LogVoiceCultureEditor, Warning, TEXT("[SSVoice] Failed to parse actor list JSON"));
+		UE_LOG(LogVoiceCultureEditor, Warning, TEXT("[SSVoiceCulture] Failed to parse actor list JSON"));
 		return;
 	}
 
+	// Ensure the root of the JSON is an array
 	if (RootValue->Type != EJson::Array)
 	{
-		UE_LOG(LogVoiceCultureEditor, Warning, TEXT("[SSVoice] Expected root JSON to be an array"));
+		UE_LOG(LogVoiceCultureEditor, Warning, TEXT("[SSVoiceCulture] Expected root JSON to be an array"));
 		return;
 	}
 
+	// Extract actor names from the JSON array and populate the list
 	const TArray<TSharedPtr<FJsonValue>>& JsonArray = RootValue->AsArray();
 	for (const TSharedPtr<FJsonValue>& Value : JsonArray)
 	{
@@ -192,9 +198,10 @@ void SSSVoiceDashboard::LoadActorListFromJson()
 		}
 	}
 
-	// Call the search filter result
+	// Apply current search filter to the loaded list
 	RefreshActorFilter();
-
+	
+	// Refresh the UI list view to reflect changes
 	if (ActorListView.IsValid())
 	{
 		ActorListView->RequestListRefresh();

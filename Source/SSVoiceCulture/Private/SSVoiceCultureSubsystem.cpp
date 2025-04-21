@@ -7,6 +7,8 @@
 
 #include "SSVoiceCultureSubsystem.h"
 
+#include "Engine/World.h"
+#include "Engine/Engine.h"
 #include "SSVoiceCultureLog.h"
 #include "SSVoiceCultureSettings.h"
 
@@ -36,13 +38,15 @@ void USSVoiceCultureSubsystem::HandleStartGameInstance(UGameInstance* GameInstan
 
 void USSVoiceCultureSubsystem::SetCurrentVoiceCulture(const FString& Language)
 {
+	// Store the language in memory (applied immediately for runtime lookups)
 	CurrentLanguage = Language;
 
-	// save in ini
+	// Persist the new culture setting into the user config file
 	auto* VoiceCultureSettings = USSVoiceCultureSettings::GetMutableSetting();
 	VoiceCultureSettings->CurrentLanguage = CurrentLanguage;
 	VoiceCultureSettings->SaveConfig();
-	
+
+	// Log the culture switch
 	UE_LOG(LogVoiceCulture, Log, TEXT("%s : Language switched to [%s]"), *GetNameSafe(this), *CurrentLanguage);
 }
 

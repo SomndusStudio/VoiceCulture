@@ -108,6 +108,11 @@ protected:
 
 	void RefreshActorFilter();
 	void RefreshAssetsForSelectedActor();
+	
+	/**
+	 * Loads the list of voice actors from a saved JSON file and populates the Actor list UI.
+	 * The JSON file is expected to be an array of strings, e.g. ["NPC01", "Hero", "EnemyBoss"]
+	 */
 	void LoadActorListFromJson();
 
 	// ------------------------

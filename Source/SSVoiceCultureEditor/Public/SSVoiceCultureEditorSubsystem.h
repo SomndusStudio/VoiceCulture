@@ -68,15 +68,19 @@ public:
 	USSVoiceCultureStrategy* GetActiveStrategy();
 
 	/**
-	 * Returns the currently active voice culture profile, as defined in settings.
+	 * Returns the currently active voice strategy profile from the editor settings.
+	 * If no profile matches or settings are invalid, returns the fallback profile.
+	 *
+	 * @return A pointer to the active FSSVoiceStrategyProfile.
 	 */
 	const FSSVoiceStrategyProfile* GetActiveProfile() const;
 
 	/**
-	 * Retrieves a specific voice culture profile by its name.
+	 * Returns a voice strategy profile by its name.
+	 * If no matching profile is found or settings are invalid, the fallback profile is returned.
 	 *
-	 * @param ProfileName Name of the profile to retrieve.
-	 * @return Pointer to the corresponding profile, or nullptr if not found.
+	 * @param ProfileName The name of the profile to retrieve.
+	 * @return A pointer to the matching FSSVoiceStrategyProfile or the fallback profile if not found.
 	 */
 	const FSSVoiceStrategyProfile* GetProfileFromName(FString ProfileName) const;
 
@@ -89,19 +93,24 @@ public:
 	static TArray<FAssetData> GetAllLocalizeVoiceSoundAssets();
 	
 	/**
-	 * Retrieves all Voice Actor assets associated with a given voice actor name.
+	 * Filters all localized voice sound assets to only include those that match the specified voice actor name.
+	 * This is based on a simple substring match within the asset name (e.g. "NPC01" in "LVA_NPC01_Hello").
 	 *
-	 * @param Assets Array to populate with matching assets.
-	 * @param VoiceActorName Name of the voice actor to filter by.
+	 * @param Assets [Out] Array that will be filled with matching assets.
+	 * @param VoiceActorName The name identifier used to filter voice assets (e.g. "NPC01").
 	 */
 	UFUNCTION(BlueprintCallable, Category="Voice Culture")
 	static void GetAssetsFromVoiceActor(TArray<FAssetData>& Assets, FString VoiceActorName);
 
 	/**
-	 * Retrieves all voice culture assets that match the culture filtering criteria.
+	 * Filters the provided list of assets based on their completeness with regard to supported cultures.
 	 *
-	 * @param Assets Array to populate with results.
-	 * @param bCompleteCulture If true, includes only assets with complete culture data.
+	 * Each voice asset may support one or more cultures via the metadata tag "VoiceCultures".
+	 * This function compares the set of present cultures in each asset against the full set defined in project settings.
+	 *
+	 * @param Assets            [In/Out] The list of asset data to filter. Modified in-place.
+	 * @param bCompleteCulture  If true, only assets that contain all supported cultures will be kept.
+	 *                          If false, only assets that are missing at least one culture will be kept.
 	 */
 	static void GetAssetsWithCulture(TArray<FAssetData>& Assets, const bool bCompleteCulture);
 

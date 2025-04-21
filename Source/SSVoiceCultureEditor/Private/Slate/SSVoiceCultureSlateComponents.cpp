@@ -211,13 +211,18 @@ void SSSVoiceCulturePreviewLanguageSelector::HandleGlobalLanguageChanged(const F
 USoundBase* USSVoiceCultureGraphNode::GetSoundBase()
 {
 	if (!SourceAsset) return nullptr;
-	
+
+	// Normalize culture code for consistent comparison
 	const FString CultureCode = Culture.ToLower();
+
+	// Look for the matching culture entry in the parent asset
 	const FSSCultureAudioEntry* Entry = SourceAsset->VoiceCultures.FindByPredicate(
 		[&](const FSSCultureAudioEntry& E)
 		{
 			return E.Culture.ToLower() == CultureCode;
 		});
+
+	// Return the associated sound if found
 	if (!Entry)
 	{
 		return nullptr;

@@ -11,6 +11,8 @@
 #include "SSVoiceCultureSettings.h"
 #include "SSVoiceCultureSubsystem.h"
 #include "Sound/SoundWave.h"
+#include "Engine/Engine.h"
+#include "Engine/GameInstance.h"
 #include "UObject/AssetRegistryTagsContext.h"
 
 USSVoiceCultureSound::USSVoiceCultureSound()

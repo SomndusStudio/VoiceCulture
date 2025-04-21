@@ -9,6 +9,7 @@
 #include "CoreMinimal.h"
 #include "EdGraphUtilities.h"
 #include "SGraphNode.h"
+#include "SSVoiceCultureEditorLog.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Settings/SSVoiceCultureEditorSettings.h"
 
@@ -98,6 +99,14 @@ public:
 	UPROPERTY()
 	FString Culture;
 
+	/**
+	 * Returns the associated USoundBase for this graph node, based on its culture setting.
+	 *
+	 * This function searches the parent voice culture asset for a matching entry corresponding
+	 * to the culture defined in this node. If found, it returns the associated sound.
+	 *
+	 * @return The localized USoundBase for this node's culture, or nullptr if not found.
+	 */
 	USoundBase* GetSoundBase();
 	
 	// Required override
@@ -132,17 +141,17 @@ class FSSVoiceCultureGraphNodeFactory : public FGraphPanelNodeFactory
 public:
 	virtual TSharedPtr<SGraphNode> CreateNode(UEdGraphNode* InNode) const override
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Factory called for %s"), *InNode->GetClass()->GetName());
+		UE_LOG(LogVoiceCultureEditor, Warning, TEXT("Factory called for %s"), *InNode->GetClass()->GetName());
 
 		if (auto* VCNode = Cast<USSVoiceCultureGraphNode>(InNode))
 		{
 			TSharedRef<SSSVoiceCultureGraphNodeVisual> Widget = SNew(SSSVoiceCultureGraphNodeVisual, VCNode);
 		
-			UE_LOG(LogTemp, Warning, TEXT("Created visual node for culture: %s"), *VCNode->Culture);
+			UE_LOG(LogVoiceCultureEditor, Warning, TEXT("Created visual node for culture: %s"), *VCNode->Culture);
 			return Widget;
 		}
 
-		UE_LOG(LogTemp, Error, TEXT("Could not create SGraphNode for %s"), *InNode->GetClass()->GetName());
+		UE_LOG(LogVoiceCultureEditor, Error, TEXT("Could not create SGraphNode for %s"), *InNode->GetClass()->GetName());
 		return nullptr;
 	}
 };
