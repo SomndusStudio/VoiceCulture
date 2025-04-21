@@ -38,9 +38,10 @@ public:
 	 * The setting is persistent between editor/game sessions.
 	 *
 	 * @param Language The culture code to apply (e.g. "en", "fr", "jp").
+	 * @param bPersist Save ini file ?
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Voice Culture")
-	void SetCurrentVoiceCulture(const FString& Language);
+	void SetCurrentVoiceCulture(const FString& Language, bool bPersist=true);
 
 	/**
 	 * Returns the currently active voice culture.

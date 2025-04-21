@@ -9,21 +9,30 @@
 	"CreatedByURL": "https://somndus-studio.com/",
 	"DocsURL": "https://somndus-studio.com/docs/category/voice-culture",
 	"SupportEmail": "somndus.studio@gmail.com",
-	"MarketplaceURL": "https://www.fab.com/listings/7a4c3ed9-fd54-47d3-b01f-8cf9e2dc96b2",
+	"MarketplaceURL": "com.epicgames.launcher://ue/Fab/product/7a4c3ed9-fd54-47d3-b01f-8cf9e2dc96b2",
 	"CanContainContent": false,
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": true,
 	"Installed": false,
+	"PlatformAllowList": [
+		"Win64"
+	],
 	"Modules": [
 		{
 			"Name": "SSVoiceCulture",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [
+				"Win64"
+			]
 		},
 		{
 			"Name": "SSVoiceCultureEditor",
 			"Type": "UncookedOnly",
-			"LoadingPhase": "PreDefault"
+			"LoadingPhase": "PreDefault",
+			"PlatformAllowList": [
+				"Win64"
+			]
 		}
 	]
 }

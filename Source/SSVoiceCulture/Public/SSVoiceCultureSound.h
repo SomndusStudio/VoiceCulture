@@ -58,6 +58,29 @@ public:
 	USoundBase* GetSoundForCulture(const FString& CultureCode) const;
 
 	/**
+	 * Checks if a valid localized sound exists for the specified culture.
+	 *
+	 * Iterates through the VoiceCultures array and returns true if an entry matches
+	 * the provided culture code (case-insensitive) and its associated sound is valid.
+	 *
+	 * @param CultureCode The culture/language code to check (e.g., "fr", "en").
+	 * @return True if a matching culture entry exists and has a valid sound; otherwise, false.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Voice Culture")
+	bool HaveValidSoundForCulture(const FString& CultureCode) const;
+
+	/**
+	 * Checks whether a valid localized sound is available for the currently selected voice culture.
+	 *
+	 * Uses the global voice culture subsystem to determine the current voice culture,
+	 * then verifies whether a valid sound exists for that culture in this asset.
+	 *
+	 * @return True if a sound is available and valid for the current voice culture; otherwise, false.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Voice Culture")
+	bool IsCurrentCultureValid() const;
+	
+	/**
 	 * Retrieves the culture sound based on the current game culture.
 	 * Uses internal culture resolution (from subsystem).
 	 * @return The appropriate culture voice asset, or nullptr if not found.

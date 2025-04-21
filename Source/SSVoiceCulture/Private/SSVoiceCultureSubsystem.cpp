@@ -36,7 +36,7 @@ void USSVoiceCultureSubsystem::HandleStartGameInstance(UGameInstance* GameInstan
 	}
 }
 
-void USSVoiceCultureSubsystem::SetCurrentVoiceCulture(const FString& Language)
+void USSVoiceCultureSubsystem::SetCurrentVoiceCulture(const FString& Language, bool bPersist)
 {
 	// Store the language in memory (applied immediately for runtime lookups)
 	CurrentLanguage = Language;
@@ -44,7 +44,10 @@ void USSVoiceCultureSubsystem::SetCurrentVoiceCulture(const FString& Language)
 	// Persist the new culture setting into the user config file
 	auto* VoiceCultureSettings = USSVoiceCultureSettings::GetMutableSetting();
 	VoiceCultureSettings->CurrentLanguage = CurrentLanguage;
-	VoiceCultureSettings->SaveConfig();
+	if(bPersist)
+	{
+		VoiceCultureSettings->SaveConfig();
+	}
 
 	// Log the culture switch
 	UE_LOG(LogVoiceCulture, Log, TEXT("%s : Language switched to [%s]"), *GetNameSafe(this), *CurrentLanguage);
@@ -57,7 +60,7 @@ FString USSVoiceCultureSubsystem::GetCurrentVoiceCulture() const
 
 TArray<FString> USSVoiceCultureSubsystem::GetSupportedVoiceCultures() const
 {
-	const USSVoiceCultureSettings* Settings = USSVoiceCultureSettings::GetSetting();
+	const auto* Settings = USSVoiceCultureSettings::GetSetting();
 	return Settings->SupportedVoiceCultures.Array();
 }
 

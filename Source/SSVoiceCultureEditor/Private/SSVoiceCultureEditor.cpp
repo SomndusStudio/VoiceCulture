@@ -1,4 +1,10 @@
-﻿#include "SSVoiceCultureEditor.h"
+﻿/**
+* Copyright (C) 2020-2025 Schartier Isaac
+*
+* Official Documentation: https://www.somndus-studio.com
+*/
+
+#include "SSVoiceCultureEditor.h"
 
 #include "AssetToolsModule.h"
 #include "AssetTypeActions_SSVoiceCultureSound.h"

@@ -19,19 +19,42 @@ USSVoiceCultureSound::USSVoiceCultureSound()
 {
 }
 
-USoundBase* USSVoiceCultureSound::GetSoundForCulture(const FString& Language) const
+USoundBase* USSVoiceCultureSound::GetSoundForCulture(const FString& CultureCode) const
 {
 	for (const auto& Entry : VoiceCultures)
 	{
-		if (Entry.Culture.Equals(Language, ESearchCase::IgnoreCase))
+		if (Entry.Culture.Equals(CultureCode, ESearchCase::IgnoreCase))
 		{
 			return Entry.Sound;
 		}
 	}
 	
-	UE_LOG(LogVoiceCulture, Error, TEXT("%s : Can't found valid CultureSound from given language [%s]"), *GetNameSafe(this), *Language);
+	UE_LOG(LogVoiceCulture, Error, TEXT("%s : Can't found valid CultureSound from given language [%s]"), *GetNameSafe(this), *CultureCode);
 
 	return nullptr;
+}
+
+bool USSVoiceCultureSound::HaveValidSoundForCulture(const FString& CultureCode) const
+{
+	for (const auto& Entry : VoiceCultures)
+	{
+		if (Entry.Culture.Equals(CultureCode, ESearchCase::IgnoreCase))
+		{
+			if (!Entry.Sound) return false; // Sound is missing, not considered valid
+			return true;
+		}
+	}
+	return false; // No matching culture entry found
+}
+
+bool USSVoiceCultureSound::IsCurrentCultureValid() const
+{
+	if (auto* Subsystem = GEngine->GetEngineSubsystem<USSVoiceCultureSubsystem>())
+	{
+		return HaveValidSoundForCulture(Subsystem->GetCurrentVoiceCulture());
+	}
+	
+	return false; // Subsystem not available
 }
 
 USoundBase* USSVoiceCultureSound::GetCurrentCultureSound() const
