@@ -67,5 +67,3 @@ This plugin is released under the [MIT License](LICENSE) (or whatever license yo
 
 **Isaac Schartier**  
 [https://somndus-studio.com](https://somndus-studio.com)
-
-For support: [support@somndus-studio.com](mailto:support@somndus-studio.com)
