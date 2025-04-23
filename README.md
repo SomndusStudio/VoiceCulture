@@ -60,7 +60,7 @@ Full documentation available at:
 
 ## 🏷 License
 
-This plugin is released under the [MIT License](LICENSE) (or whatever license you choose).
+This plugin is released under the [MIT License](LICENSE)
 
 
 ## 👤 Author
