@@ -10,7 +10,7 @@ It also provides powerful editor tools to track localization coverage, organize 
 
 - `USSVoiceCultureSound`: a culture-aware sound asset supporting multiple localized voice lines
 - Automatic resolution of the correct voice asset at runtime (with fallback support)
-- Full compatibility with native UE audio systems (`AudioComponent`, `AnimNotifies`, `Dialogue`, etc.)
+- Full compatibility with native UE audio systems (`AudioComponent`, `AnimNotifies`, etc.)
 - Custom editor dashboard with:
   - Culture coverage report and progress per language
   - Voice actor grouping via naming conventions
