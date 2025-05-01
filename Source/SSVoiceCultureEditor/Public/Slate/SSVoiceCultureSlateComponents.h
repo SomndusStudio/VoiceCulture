@@ -139,19 +139,5 @@ public:
 class FSSVoiceCultureGraphNodeFactory : public FGraphPanelNodeFactory
 {
 public:
-	virtual TSharedPtr<SGraphNode> CreateNode(UEdGraphNode* InNode) const override
-	{
-		UE_LOG(LogVoiceCultureEditor, Warning, TEXT("Factory called for %s"), *InNode->GetClass()->GetName());
-
-		if (auto* VCNode = Cast<USSVoiceCultureGraphNode>(InNode))
-		{
-			TSharedRef<SSSVoiceCultureGraphNodeVisual> Widget = SNew(SSSVoiceCultureGraphNodeVisual, VCNode);
-		
-			UE_LOG(LogVoiceCultureEditor, Warning, TEXT("Created visual node for culture: %s"), *VCNode->Culture);
-			return Widget;
-		}
-
-		UE_LOG(LogVoiceCultureEditor, Error, TEXT("Could not create SGraphNode for %s"), *InNode->GetClass()->GetName());
-		return nullptr;
-	}
+	virtual TSharedPtr<SGraphNode> CreateNode(UEdGraphNode* InNode) const override;
 };

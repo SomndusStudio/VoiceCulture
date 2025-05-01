@@ -79,8 +79,8 @@ void FSSVoiceCultureEditorModule::FillSomndusStudioMenu(FMenuBuilder& MenuBuilde
 void FSSVoiceCultureEditorModule::AddSomndusStudioMenu(FMenuBuilder& MenuBuilder)
 {
 	MenuBuilder.AddSubMenu(
-		NSLOCTEXT("SSVoiceCultureEditor", "SomndusStudioMenuLabel", "Somndus Studio"),
-		NSLOCTEXT("SSVoiceCultureEditor", "SomndusStudioMenuTooltip", "Custom tools by Somndus Studio."),
+		NSLOCTEXT("SomndusStudioEditor", "SomndusStudioMenuLabel", "Somndus Studio"),
+		NSLOCTEXT("SomndusStudioEditor", "SomndusStudioMenuTooltip", "Custom tools by Somndus Studio."),
 		FNewMenuDelegate::CreateRaw(this, &FSSVoiceCultureEditorModule::FillSomndusStudioMenu),
 		false, // no icon
 		FSlateIcon()
@@ -108,8 +108,8 @@ void FSSVoiceCultureEditorModule::StartupModule()
 	FSSVoiceCultureSoundEditorCommands::Register();
 
 	// Initialize and register the visual node factory
-	GraphNodeFactory = MakeShared<FSSVoiceCultureGraphNodeFactory>();
-	FEdGraphUtilities::RegisterVisualNodeFactory(GraphNodeFactory);
+	VoiceCultureGraphNodeFactory = MakeShared<FSSVoiceCultureGraphNodeFactory>();
+	FEdGraphUtilities::RegisterVisualNodeFactory(VoiceCultureGraphNodeFactory);
 
 	// Register asset type actions (for context menus, asset editor etc.)
 	VoiceCultureSoundActions = MakeShareable(new FAssetTypeActions_SSVoiceCultureSound);
@@ -143,10 +143,10 @@ void FSSVoiceCultureEditorModule::ShutdownModule()
 		SettingsModule->UnregisterSettings("Project", "Plugins", "Voice Editor Settings");
 	}
 
-	if (GraphNodeFactory.IsValid())
+	if (VoiceCultureGraphNodeFactory.IsValid())
 	{
-		FEdGraphUtilities::UnregisterVisualNodeFactory(GraphNodeFactory.ToSharedRef());
-		GraphNodeFactory.Reset();
+		FEdGraphUtilities::UnregisterVisualNodeFactory(VoiceCultureGraphNodeFactory.ToSharedRef());
+		VoiceCultureGraphNodeFactory.Reset();
 	}
 	
 	// Editor icons

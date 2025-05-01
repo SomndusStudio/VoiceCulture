@@ -146,31 +146,10 @@ TSharedRef<SDockTab> FSSVoiceCultureSoundEditorToolkit::SpawnGraphTab(const FSpa
 	// Convert each VoiceCulture entry into a graph node
 	if (Asset)
 	{
-		const int32 PaddingY = 150; // Espace entre chaque node
-		const int32 StartX = 100;
-		const int32 StartY = 100;
-
 		int32 Index = 0;
 		for (const FString& Culture : USSVoiceCultureSettings::GetSetting()->SupportedVoiceCultures)
 		{
-			FSSCultureAudioEntry* Entry = Asset->VoiceCultures.FindByPredicate(
-			[&](const FSSCultureAudioEntry& E)
-			{
-				return E.Culture.ToLower() == Culture.ToLower();
-			});
-			
-			USSVoiceCultureGraphNode* GraphNode = NewObject<USSVoiceCultureGraphNode>(VoiceCultureGraph);
-			GraphNode->SetFlags(RF_Transactional);
-			GraphNode->Rename(nullptr, VoiceCultureGraph);
-
-			GraphNode->SourceAsset = Asset;
-			GraphNode->Culture = Culture;
-
-			GraphNode->NodePosX = StartX;                     // Every node in same column
-			GraphNode->NodePosY = StartY + Index * PaddingY;  // Vertical padding
-
-			VoiceCultureGraph->AddNode(GraphNode);
-
+			USSVoiceCultureGraphNode* EdNode = CreateVisualNode(Culture, Index);
 			Index++;
 		}
 	}
@@ -326,6 +305,49 @@ void FSSVoiceCultureSoundEditorToolkit::AutoPopulateCultures()
 		UE_LOG(LogVoiceCultureEditor, Warning, TEXT("[SSVoiceCulture] AutoPopulate: No matching entries found for '%s'"),
 		       *Asset->GetName());
 	}
+}
+
+USSVoiceCultureGraphNode* FSSVoiceCultureSoundEditorToolkit::CreateVisualNode(const FString& Culture, int32 Index)
+{
+	if (!Asset)
+	{
+		UE_LOG(LogVoiceCultureEditor, Error, TEXT("[NarrativeGraph] CreateVisualNode failed: Asset is null."));
+		return nullptr;
+	}
+
+	if (!VoiceCultureGraph)
+	{
+		UE_LOG(LogVoiceCultureEditor, Error,
+			   TEXT("[SSVoiceCulture] CreateVisualNode failed: EdNarrativeGraph is null."));
+		return nullptr;
+	}
+
+	FGraphNodeCreator<USSVoiceCultureGraphNode> NodeCreator(*VoiceCultureGraph);
+	USSVoiceCultureGraphNode* EdNode = NodeCreator.CreateNode();
+	if (!EdNode)
+	{
+		UE_LOG(LogVoiceCultureEditor, Error, TEXT("[SSVoiceCulture] Failed to create visual graph node."));
+		return nullptr;
+	}
+
+	const int32 PaddingY = 150; // Espace entre chaque node
+	const int32 StartX = 100;
+	const int32 StartY = 100;
+	
+	EdNode->SetFlags(RF_Transactional);
+	EdNode->SourceAsset = Asset;
+	EdNode->Culture = Culture;
+	EdNode->NodePosX = StartX;
+	EdNode->NodePosY = StartY + Index * PaddingY;
+	EdNode->AllocateDefaultPins();
+
+	NodeCreator.Finalize();
+
+	UE_LOG(LogVoiceCultureEditor, Log,
+		   TEXT("[SSVoiceCulture] Visual node created for '%s' at (%d, %.d)."),
+		   *Culture, EdNode->NodePosX, EdNode->NodePosY);
+
+	return EdNode;
 }
 
 #undef LOCTEXT_NAMESPACE

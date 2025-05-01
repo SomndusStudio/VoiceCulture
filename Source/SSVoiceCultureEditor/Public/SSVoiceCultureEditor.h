@@ -9,6 +9,7 @@
 #include "CoreMinimal.h"
 #include "EdGraphUtilities.h"
 #include "Modules/ModuleManager.h"
+#include "Slate/SSVoiceCultureSlateComponents.h"
 #include "SSVoiceCultureEditor.generated.h"
 
 ////////////////////////////////////////////////////////////////////
@@ -43,5 +44,5 @@ public:
     TSharedRef<SDockTab> SpawnVoiceDashboardTab(const FSpawnTabArgs& Args);
 
 private:
-    TSharedPtr<FGraphPanelNodeFactory> GraphNodeFactory;
+    TSharedPtr<FSSVoiceCultureGraphNodeFactory> VoiceCultureGraphNodeFactory;
 };

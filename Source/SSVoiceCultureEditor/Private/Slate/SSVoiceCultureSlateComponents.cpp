@@ -371,5 +371,18 @@ void SSSVoiceCultureGraphNodeVisual::UpdateGraphNode()
 		];
 }
 
+TSharedPtr<SGraphNode> FSSVoiceCultureGraphNodeFactory::CreateNode(UEdGraphNode* InNode) const
+{
+	if (auto* VCNode = Cast<USSVoiceCultureGraphNode>(InNode))
+	{
+		TSharedRef<SSSVoiceCultureGraphNodeVisual> Widget = SNew(SSSVoiceCultureGraphNodeVisual, VCNode);
+	
+		UE_LOG(LogVoiceCultureEditor, Log, TEXT("Created visual node for culture: %s"), *VCNode->Culture);
+		return Widget;
+	}
+	return nullptr;
+	
+}
+
 
 #undef LOCTEXT_NAMESPACE

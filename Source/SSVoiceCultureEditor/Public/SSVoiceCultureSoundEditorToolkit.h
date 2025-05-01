@@ -8,8 +8,10 @@
 
 #include "CoreMinimal.h"
 #include "SSVoiceCultureEditorStyle.h"
+#include "SSVoiceCultureSound.h"
 #include "Toolkits/AssetEditorToolkit.h"
 
+class USSVoiceCultureGraphNode;
 class USSVoiceCultureSound;
 
 /**
@@ -94,6 +96,9 @@ private:
 	void PlaySound();
 	void StopSound();
 	void AutoPopulateCultures();
+
+	/** Creates a visual node widget for the specified runtime node */
+	USSVoiceCultureGraphNode* CreateVisualNode(const FString& Culture, int32 Index);
 	
 	TSharedPtr<FUICommandList> ToolbarCommands;
 	USSVoiceCultureSound* Asset = nullptr;
