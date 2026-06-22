@@ -19,13 +19,47 @@ USSVoiceCultureSound::USSVoiceCultureSound()
 {
 }
 
+USoundBase* USSVoiceCultureSound::ResolveSoftSound(const TSoftObjectPtr<USoundBase>& SoftSound, const FString& CultureCode) const
+{
+	if (SoftSound.IsNull())
+	{
+		return nullptr;
+	}
+
+	// Asset already loaded - return it directly, no cost
+	if (SoftSound.IsValid())
+	{
+		return SoftSound.Get();
+	}
+
+	// Asset not loaded yet - synchronous load with a verbose log so it's trackable
+	UE_LOG(LogVoiceCulture, Verbose,
+		TEXT("%s : Sound for culture [%s] is not loaded. Triggering synchronous load of [%s]."),
+		*GetNameSafe(this),
+		*CultureCode,
+		*SoftSound.ToSoftObjectPath().ToString());
+
+	USoundBase* Loaded =  SoftSound.LoadSynchronous();
+
+	if (!Loaded)
+	{
+		UE_LOG(LogVoiceCulture, Error,
+			TEXT("%s : Synchronous load failed for culture [%s] asset [%s]."),
+			*GetNameSafe(this),
+			*CultureCode,
+			*SoftSound.ToSoftObjectPath().ToString());
+	}
+
+	return Loaded;
+}
+
 USoundBase* USSVoiceCultureSound::GetSoundForCulture(const FString& CultureCode) const
 {
 	for (const auto& Entry : VoiceCultures)
 	{
 		if (Entry.Culture.Equals(CultureCode, ESearchCase::IgnoreCase))
 		{
-			return Entry.Sound;
+			return ResolveSoftSound(Entry.Sound, CultureCode);
 		}
 	}
 	
@@ -40,8 +74,8 @@ bool USSVoiceCultureSound::HaveValidSoundForCulture(const FString& CultureCode) 
 	{
 		if (Entry.Culture.Equals(CultureCode, ESearchCase::IgnoreCase))
 		{
-			if (!Entry.Sound) return false; // Sound is missing, not considered valid
-			return true;
+			// Only check that the soft reference points to something - do not trigger a load
+			return !Entry.Sound.IsNull();
 		}
 	}
 	return false; // No matching culture entry found
@@ -113,8 +147,8 @@ FString USSVoiceCultureSound::GetVoiceCultureCSV() const
 	FString Cultures;
 	for (const FSSCultureAudioEntry& Entry : VoiceCultures)
 	{
-		// Skip entries that do not have a valid sound asset
-		if (!Entry.Sound) continue;
+		// Skip entries that do not have a valid sound reference
+		if (Entry.Sound.IsNull()) continue;
 
 		// Add a comma separator if needed
 		if (!Cultures.IsEmpty())

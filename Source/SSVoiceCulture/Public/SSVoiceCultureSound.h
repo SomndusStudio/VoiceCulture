@@ -21,7 +21,7 @@ struct FSSCultureAudioEntry
 	FString Culture;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Voice Culture")
-	USoundBase* Sound;
+	TSoftObjectPtr<USoundBase> Sound;
 };
 
 /**
@@ -114,7 +114,16 @@ public:
 	
 #endif
 
+	/**
+	 * Resolves a soft sound reference to a live USoundBase pointer.
+	 * If the asset is already loaded, returns it immediately.
+	 * Otherwise, triggers a synchronous load and logs a verbose message.
+	 * Returns nullptr if the soft reference is null or the load fails.
+	 */
+	USoundBase* ResolveSoftSound(const TSoftObjectPtr<USoundBase>& SoftSound, const FString& CultureCode) const;
+
 protected:
+	
 	/** Resolves the sound to be used, either for runtime or preview (based on context). */
 	USoundBase* ResolveEffectiveSound() const;
 	

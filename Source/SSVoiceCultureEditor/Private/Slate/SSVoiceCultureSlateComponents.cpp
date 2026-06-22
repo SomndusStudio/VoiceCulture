@@ -227,7 +227,8 @@ USoundBase* USSVoiceCultureGraphNode::GetSoundBase()
 	{
 		return nullptr;
 	}
-	return Entry->Sound;
+	// Entry->Sound is a TSoftObjectPtr - resolve it (load synchronously if needed)
+	return SourceAsset->ResolveSoftSound(Entry->Sound, CultureCode);
 }
 
 void USSVoiceCultureGraphNode::AllocateDefaultPins()
