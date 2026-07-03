@@ -124,11 +124,12 @@ const
 		// Compare the suffix part of the asset name with the expected suffix
 		if (AssetSuffix != ExpectedSuffix)
 			continue;
-		
-		// Optional: If specified, check that the asset name ends with the expected suffix
-		if (!Name.EndsWith(ExpectedSuffix))
-			continue;
 
+		// Optional: check that the asset name ends with the expected suffix.
+		// Only valid when the culture code is NOT at the end of the name.
+		if (bRequireSuffixAtEnd && !Name.EndsWith(ExpectedSuffix))
+			continue;
+		
 		// Optional: Split again if needed (legacy or extended logic)
 		TArray<FString> NameParts;
 		Name.ParseIntoArray(NameParts, TEXT("_"));

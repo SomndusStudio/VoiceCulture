@@ -104,28 +104,56 @@ TSharedRef<SWidget> SSSVoiceDashboard::BuildToolbar()
 
 USSVoiceCultureStrategy* SSSVoiceDashboard::GetStrategy() const
 {
+	// GEditor can be null very early during editor startup
+	if (!GEditor)
+	{
+		return nullptr;
+	}
+
 	auto* VLEditorSubsystem = GEditor->GetEditorSubsystem<USSVoiceCultureEditorSubsystem>();
+	if (!VLEditorSubsystem)
+	{
+		return nullptr;
+	}
+
+	// May be null if the active strategy is not resolved/loaded yet (e.g. Blueprint strategy)
 	return VLEditorSubsystem->GetActiveStrategy();
 }
 
 FText SSSVoiceDashboard::GetVoiceCultureText() const
 {
-	return GetStrategy()->DisplayMatchVoiceCulturePattern();
+	if (const USSVoiceCultureStrategy* Strategy = GetStrategy())
+	{
+		return Strategy->DisplayMatchVoiceCulturePattern();
+	}
+	return LOCTEXT("StrategyNotReady", "Loading...");
 }
 
 FText SSSVoiceDashboard::GetVoiceCultureExampleText() const
 {
-	return GetStrategy()->DisplayMatchVoiceCulturePatternExample();
+	if (const USSVoiceCultureStrategy* Strategy = GetStrategy())
+	{
+		return Strategy->DisplayMatchVoiceCulturePatternExample();
+	}
+	return FText::GetEmpty();
 }
 
 FText SSSVoiceDashboard::GetMatchCulturePatternText() const
 {
-	return GetStrategy()->DisplayMatchCultureRulePattern();
+	if (const USSVoiceCultureStrategy* Strategy = GetStrategy())
+	{
+		return Strategy->DisplayMatchCultureRulePattern();
+	}
+	return LOCTEXT("StrategyNotReady", "Loading...");
 }
 
 FText SSSVoiceDashboard::GetMatchCulturePatternExampleText() const
 {
-	return GetStrategy()->DisplayMatchCultureRulePatternExample();
+	if (const USSVoiceCultureStrategy* Strategy = GetStrategy())
+	{
+		return Strategy->DisplayMatchCultureRulePatternExample();
+	}
+	return FText::GetEmpty();
 }
 
 void SSSVoiceDashboard::OpenAutoPopulateConfirmationDialog(const FString& Culture)

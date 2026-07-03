@@ -20,9 +20,8 @@ class SSVOICECULTUREEDITOR_API USSVoiceCultureStrategy_Default : public USSVoice
 	GENERATED_BODY()
 
 protected:
-
 	virtual FString BuildExpectedAssetSuffix(const FString& CultureCode, const FString& BaseSuffix) const override;
-	
+
 	/**
 	 * Extracts the suffix portion of a base asset name by removing the prefix and culture code.
 	 * Example: "A_EN_NPC01_Scene01" → "NPC01_Scene01"
@@ -40,7 +39,7 @@ protected:
 	 * @return true if the name was successfully parsed; false otherwise.
 	 */
 	virtual bool ParseAssetName(const FString& AssetName, FString& OutPrefix, FString& OutCulture, FString& OutSuffix) const override;
-	
+
 public:
 	/** Culture code is expected at this index (e.g., 1 for "LVA_en_MyLine") */
 	UPROPERTY(EditAnywhere, Category = "Strategy")
@@ -60,6 +59,15 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Strategy")
 	bool bRecursiveClasses = true;
 
+	/**
+	 * If true, the candidate asset name must end with the expected suffix.
+	 * Useful when the culture code is at the beginning of the name (e.g. A_EN_NPC01_Hello).
+	 * Strategies that place the culture code at the end of the name (e.g. VO_11_Chapter_000_en)
+	 * must disable this flag, otherwise no asset will ever match.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Matching")
+	bool bRequireSuffixAtEnd = true;
+
 	virtual FText DisplayMatchVoiceCulturePattern_Implementation() const override;
 	virtual FText DisplayMatchVoiceCulturePatternExample_Implementation() const override;
 
@@ -67,9 +75,10 @@ public:
 	virtual FText DisplayMatchCultureRulePatternExample_Implementation() const override;
 
 	virtual bool ExecuteAutoPopulate_Implementation(const FString& InBaseName,
-	                                            TMap<FString, USoundBase*>& OutCultureToSound) const override;
+	                                                TMap<FString, USoundBase*>& OutCultureToSound) const override;
 
-	virtual bool ExecuteOptimizedOneCultureAutoPopulateInAsset(USSVoiceCultureSound* TargetAsset, const FString& CultureCode, bool bOverrideExisting, FSSCultureAudioEntry& OutNewEntry, const TArray<FAssetData>& AssetCache) const override;
+	virtual bool ExecuteOptimizedOneCultureAutoPopulateInAsset(USSVoiceCultureSound* TargetAsset, const FString& CultureCode, bool bOverrideExisting,
+	                                                           FSSCultureAudioEntry& OutNewEntry, const TArray<FAssetData>& AssetCache) const override;
 
 
 	virtual bool

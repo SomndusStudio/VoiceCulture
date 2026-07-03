@@ -187,6 +187,9 @@ USoundBase* USSVoiceCultureSound::ResolveEffectiveSound() const
 	if (GIsEditor)
 	{
 		auto* VoiceLocalizationSettings = USSVoiceCultureSettings::GetSetting();
+
+		// safe check, if open editor while previous asset sound was openned, world don't have time to initialize
+		if (!GWorld) return nullptr;
 		
 		// If in game (PIE/Simulator/etc) but want to use preview language for testing
 		if (GWorld->IsGameWorld() && VoiceLocalizationSettings->bUsePreviewLanguageInGame)

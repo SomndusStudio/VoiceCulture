@@ -258,7 +258,7 @@ FContentBrowserModule& USSVoiceCultureEditorSubsystem::GetVoiceContentBrowser()
 USSVoiceCultureStrategy* USSVoiceCultureEditorSubsystem::RefreshStrategy()
 {
 	const FSSVoiceStrategyProfile* ActiveProfile = GetActiveProfile();
-	if (!ActiveProfile || !ActiveProfile->StrategyClass.IsValid())
+	if (!ActiveProfile || ActiveProfile->StrategyClass.IsNull())
 	{
 		return nullptr;
 	}
