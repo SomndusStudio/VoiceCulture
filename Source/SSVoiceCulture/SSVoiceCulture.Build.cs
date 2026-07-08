@@ -9,6 +9,8 @@ public class SSVoiceCulture : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
+		PrivatePCHHeaderFile = "Public/SSVoiceCulture.h";
+		
 		PublicIncludePaths.AddRange(
 			new string[] {
 			}
