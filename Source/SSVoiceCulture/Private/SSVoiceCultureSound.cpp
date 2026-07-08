@@ -106,13 +106,40 @@ USoundBase* USSVoiceCultureSound::GetCurrentCultureSound() const
 #if ENGINE_MAJOR_VERSION >= 5
 float USSVoiceCultureSound::GetDuration() const
 {
-	if (USoundBase* Inner = ResolveEffectiveSound())
+	if (GIsEditor || Duration < UE_SMALL_NUMBER)
 	{
-		return Inner->GetDuration();
+		USSVoiceCultureSound* MutableThis = const_cast<USSVoiceCultureSound*>(this);
+		MutableThis->CacheAggregateValues();
 	}
-	return 0.0f;
+	return Duration;
 }
 #endif
+
+void USSVoiceCultureSound::PostLoad()
+{
+	Super::PostLoad();
+	CacheAggregateValues();
+}
+
+void USSVoiceCultureSound::Serialize(FArchive& Ar)
+{
+	if (Ar.IsSaving() && !Ar.IsCooking())
+	{
+		// Try to refresh cached duration before save, comme SoundCue
+		Duration = 0.f;
+		CacheAggregateValues();
+	}
+	Super::Serialize(Ar);
+}
+
+void USSVoiceCultureSound::CacheAggregateValues()
+{
+	if (USoundBase* Inner = ResolveEffectiveSound())
+	{
+		Inner->ConditionalPostLoad();
+		Duration = Inner->GetDuration();
+	}
+}
 
 bool USSVoiceCultureSound::IsPlayable() const
 {

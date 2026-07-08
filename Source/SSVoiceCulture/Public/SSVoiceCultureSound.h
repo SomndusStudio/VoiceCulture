@@ -92,6 +92,13 @@ public:
 #if ENGINE_MAJOR_VERSION >= 5
 	virtual float GetDuration() const override;
 #endif
+
+	virtual void PostLoad() override;
+	virtual void Serialize(FArchive& Ar) override;
+
+	/** Updates Duration (and other aggregated values) from the resolved sound. */
+	void CacheAggregateValues();
+	
 	virtual bool IsPlayable() const override;
 	virtual void Parse(class FAudioDevice* AudioDevice, const UPTRINT NodeWaveInstanceHash, FActiveSound& ActiveSound, const FSoundParseParameters& ParseParams, TArray<FWaveInstance*>& WaveInstances) override;
 	
