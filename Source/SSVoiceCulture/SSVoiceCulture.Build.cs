@@ -25,7 +25,7 @@ public class SSVoiceCulture : ModuleRules
 			new string[]
 			{
 				"Core",
-				"DeveloperSettings",
+				"DeveloperSettings", "Engine",
 			}
 			);
 			
