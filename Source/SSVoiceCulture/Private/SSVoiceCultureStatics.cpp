@@ -1,4 +1,8 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿/**
+* Copyright (C) Schartier Isaac
+*
+* Official Documentation: https://www.somndus-studio.com
+*/
 
 
 #include "SSVoiceCultureStatics.h"
