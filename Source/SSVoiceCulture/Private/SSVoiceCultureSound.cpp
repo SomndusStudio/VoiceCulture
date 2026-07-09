@@ -31,7 +31,25 @@ USoundBase* USSVoiceCultureSound::ResolveSoftSound(const TSoftObjectPtr<USoundBa
 	{
 		return SoftSound.Get();
 	}
+	
+	// Not resolved via TSoftObjectPtr cache, but maybe already in memory
+	// ResolveObject() is a thread-safe hash lookup, no load
+	if (UObject* Already = SoftSound.ToSoftObjectPath().ResolveObject())
+	{
+		return Cast<USoundBase>(Already);
+	}
 
+	// Actual load needed - only safe on the game thread.
+	// FAudioAsyncBatcher (UE 5.3+) can call Parse/IsPlayable from a worker thread,
+	// where FlushAsyncLoading + GC lock are forbidden.
+	if (!IsInGameThread())
+	{
+		UE_LOG(LogVoiceCulture, Warning,
+			TEXT("%s : Sound for culture [%s] requested from worker thread but not yet loaded. Skipping this frame. Consider preloading via the subsystem."),
+			*GetNameSafe(this), *CultureCode);
+		return nullptr;
+	}
+	
 	// Asset not loaded yet - synchronous load with a verbose log so it's trackable
 	UE_LOG(LogVoiceCulture, Verbose,
 		TEXT("%s : Sound for culture [%s] is not loaded. Triggering synchronous load of [%s]."),
@@ -63,8 +81,14 @@ USoundBase* USSVoiceCultureSound::GetSoundForCulture(const FString& CultureCode)
 		}
 	}
 	
-	UE_LOG(LogVoiceCulture, Error, TEXT("%s : Can't found valid CultureSound from given language [%s]"), *GetNameSafe(this), *CultureCode);
-
+	// Don't spam errors for the CDO (empty by design)
+	if (!HasAnyFlags(RF_ClassDefaultObject | RF_ArchetypeObject))
+	{
+		UE_LOG(LogVoiceCulture, Error,
+			TEXT("%s : Can't found valid CultureSound from given language [%s]"),
+			*GetNameSafe(this), *CultureCode);
+	}
+	
 	return nullptr;
 }
 
@@ -106,6 +130,11 @@ USoundBase* USSVoiceCultureSound::GetCurrentCultureSound() const
 #if ENGINE_MAJOR_VERSION >= 5
 float USSVoiceCultureSound::GetDuration() const
 {
+	if (HasAnyFlags(RF_ClassDefaultObject | RF_ArchetypeObject))
+	{
+		return 0.f;
+	}
+	
 	if (GIsEditor || Duration < UE_SMALL_NUMBER)
 	{
 		USSVoiceCultureSound* MutableThis = const_cast<USSVoiceCultureSound*>(this);
@@ -134,6 +163,12 @@ void USSVoiceCultureSound::Serialize(FArchive& Ar)
 
 void USSVoiceCultureSound::CacheAggregateValues()
 {
+	// Skip CDO / archetypes: they legitimately have no VoiceCultures entries.
+	if (HasAnyFlags(RF_ClassDefaultObject | RF_ArchetypeObject))
+	{
+		return;
+	}
+	
 	if (USoundBase* Inner = ResolveEffectiveSound())
 	{
 		Inner->ConditionalPostLoad();
@@ -215,7 +250,7 @@ USoundBase* USSVoiceCultureSound::ResolveEffectiveSound() const
 	{
 		auto* VoiceLocalizationSettings = USSVoiceCultureSettings::GetSetting();
 
-		// safe check, if open editor while previous asset sound was openned, world don't have time to initialize
+		// safe check, if open editor while previous asset sound was opened, world don't have time to initialize
 		if (!GWorld) return nullptr;
 		
 		// If in game (PIE/Simulator/etc) but want to use preview language for testing
